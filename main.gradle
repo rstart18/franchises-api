@@ -82,6 +82,32 @@ subprojects {
         }
     }
 
+    jacocoTestCoverageVerification {
+        dependsOn jacocoTestReport
+        violationRules {
+            rule {
+                limit {
+                    counter = 'LINE'
+                    value   = 'COVEREDRATIO'
+                    minimum = 0.90
+                }
+                excludes = [
+                    'co.com.bancolombia.MainApplication',
+                    'co.com.bancolombia.config.*',
+                    'co.com.bancolombia.api.config.openapi.*',
+                    'co.com.bancolombia.api.RouterRest',
+                    'co.com.bancolombia.api.Handler',
+                    'co.com.bancolombia.api.dto.*',
+                    'co.com.bancolombia.adapter.*.data.*',
+                    'co.com.bancolombia.adapter.*Mapper*',
+                    'co.com.bancolombia.api.franchise.*Mapper*',
+                ]
+            }
+        }
+    }
+
+    check.dependsOn jacocoTestCoverageVerification
+
 }
 
 jacoco {

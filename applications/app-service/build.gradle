@@ -4,7 +4,11 @@ dependencies {
 	implementation project(':reactive-web')
     implementation project(':model')
     implementation project(':usecase')
+    implementation project(':r2dbc-postgresql-repository')
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly('org.springframework.boot:spring-boot-devtools')
     testImplementation 'com.tngtech.archunit:archunit:1.4.1'
     testImplementation 'tools.jackson.core:jackson-databind'
@@ -23,4 +27,12 @@ jar {
 bootJar {
     // Sets output jar name
     archiveFileName = "${project.getParent().getName()}.${archiveExtension.get()}"
+}
+
+// Propaga las System properties cargadas desde .env (en settings.gradle) a la JVM hija de bootRun
+bootRun {
+    ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].each { key ->
+        def val = System.getProperty(key)
+        if (val) systemProperty key, val
+    }
 }

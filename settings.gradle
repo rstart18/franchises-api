@@ -5,6 +5,20 @@ pluginManagement {
     }
 }
 
+// Carga el .env de la raíz como System properties antes de cualquier tarea
+// Spring Boot los resuelve igual que variables de entorno: ${DB_HOST}, etc.
+def envFile = new File(rootDir, '.env')
+if (envFile.exists()) {
+    envFile.readLines().each { line ->
+        if (line && !line.startsWith('#') && line.contains('=')) {
+            def idx = line.indexOf('=')
+            def key = line.substring(0, idx).trim()
+            def value = line.substring(idx + 1).trim()
+            if (key) System.setProperty(key, value)
+        }
+    }
+}
+
 buildCache {
     local {
         directory = new File(rootDir, 'build-cache')
@@ -21,3 +35,5 @@ project(':model').projectDir = file('./domain/model')
 project(':usecase').projectDir = file('./domain/usecase')
 include ':reactive-web'
 project(':reactive-web').projectDir = file('./infrastructure/entry-points/reactive-web')
+include ':r2dbc-postgresql-repository'
+project(':r2dbc-postgresql-repository').projectDir = file('./infrastructure/driven-adapters/r2dbc-postgresql-repository')

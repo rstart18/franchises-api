@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Franchises API
+  version: 1.0.0
+  description: Reactive API for managing franchises and their branches
+  contact:
+    name: Backend Team
+    email: backend@company.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+  - url: https://api.company.com
+    description: Production
+
+tags:
+  - name: Franchises
+    description: Franchise management operations
+
+paths:
+  /api/v1/franchises:
+    post:
+      tags:
+        - Franchises
+      operationId: createFranchise
+      summary: Create a new franchise
+      description: Creates a new franchise identified by name.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FranchiseRequest'
+            example:
+              name: Burger Kingdom
+      responses:
+        '201':
+          description: Franchise created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FranchiseResponse'
+              example:
+                id: 1
+                name: Burger Kingdom
+        '400':
+          description: Validation error – one or more fields are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                status: 400
+                message: Validation failed
+                errors:
+                  - field: name
+                    message: Franchise name is required
+                timestamp: '2026-02-14T13:10:48'
+        '409':
+          description: A franchise with the given name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessErrorResponse'
+              example:
+                status: 409
+                code: FRANCHISE_NAME_ALREADY_EXISTS
+                message: A franchise with that name already exists
+                timestamp: '2026-02-14T13:10:48'
+
+components:
+  schemas:
+    FranchiseRequest:
+      type: object
+      description: Request payload to create a new franchise
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Franchise name
+          maxLength: 100
+          example: Burger Kingdom
+
+    FranchiseResponse:
+      type: object
+      description: Franchise creation response
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Franchise ID
+          example: 1
+        name:
+          type: string
+          description: Franchise name
+          example: Burger Kingdom
+
+    BusinessErrorResponse:
+      type: object
+      description: Error response for domain/business errors
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 409
+        code:
+          type: string
+          description: Business error code
+          example: FRANCHISE_NAME_ALREADY_EXISTS
+        message:
+          type: string
+          description: Error message
+          example: A franchise with that name already exists
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the error
+          example: '2026-02-14T13:10:48'
+
+    ValidationErrorResponse:
+      type: object
+      description: Error response for DTO validation failures
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Generic validation error message
+          example: Validation failed
+        errors:
+          type: array
+          description: List of field-level validation errors
+          items:
+            $ref: '#/components/schemas/FieldError'
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the error
+          example: '2026-02-14T13:10:48'
+
+    FieldError:
+      type: object
+      description: Individual field validation error
+      properties:
+        field:
+          type: string
+          description: Field that failed validation
+          example: name
+        message:
+          type: string
+          description: Validation error message
+          example: Franchise name is required

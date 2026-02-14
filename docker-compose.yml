@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15.4-alpine
+    container_name: franchises-postgres
+    environment:
+      POSTGRES_DB: franchises_db
+      POSTGRES_USER: franchises_admin
+      POSTGRES_PASSWORD: franchises_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U franchises_admin -d franchises_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

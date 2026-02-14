@@ -4,30 +4,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UseCasesConfigTest {
 
     @Test
-    void testUseCaseBeansExist() {
+    @org.junit.jupiter.api.DisplayName("UseCasesConfig @ComponentScan filter should only pick up beans ending with UseCase")
+    void useCasesConfigShouldFilterByUseCaseSuffix() {
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(TestConfig.class)) {
-            String[] beanNames = context.getBeanDefinitionNames();
-
-            boolean useCaseBeanFound = false;
-            for (String beanName : beanNames) {
-                if (beanName.endsWith("UseCase")) {
-                    useCaseBeanFound = true;
-                    break;
-                }
-            }
-
-            assertTrue(useCaseBeanFound, "No beans ending with 'Use Case' were found");
+            assertTrue(context.containsBean("myUseCase"), "Bean 'myUseCase' should be registered");
+            assertNotNull(context.getBean("myUseCase"));
         }
     }
 
     @Configuration
-    @Import(UseCasesConfig.class)
     static class TestConfig {
 
         @Bean

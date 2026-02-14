@@ -5,12 +5,27 @@ spring:
     name: "FranchisesApi"
   devtools:
     add-properties: false
-  h2:
-    console:
-      enabled: true
-      path: "/h2"
   profiles:
     include: null
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:franchises_db}
+    username: ${DB_USER:franchises_admin}
+    password: ${DB_PASSWORD:franchises_pass}
+    properties:
+      ssl: "true"
+      sslMode: REQUIRE
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+  flyway:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:franchises_db}?sslmode=require
+    user: ${DB_USER:franchises_admin}
+    password: ${DB_PASSWORD:franchises_pass}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    enabled: false   # Deshabilitamos el autoconfig de Spring Boot; usamos FlywayConfig.java manual
+
 management:
   endpoints:
     web:
@@ -20,5 +35,14 @@ management:
     health:
       probes:
         enabled: true
+
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  show-actuator: false
