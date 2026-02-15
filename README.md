@@ -53,7 +53,14 @@ Este módulo es el más externo de la arquitectura, es el encargado de ensamblar
 | Método | Ruta | Descripción | Respuesta |
 |--------|------|-------------|-----------|
 | POST | `/api/v1/franchises` | Crear una nueva franquicia | 201 `{id, name}` |
-| POST | `/api/v1/franchises/{franchiseId}/branches` | Agregar una sucursal a una franquicia existente | 201 `{id, name}` |
+| PATCH | `/api/v1/franchises/{franchiseId}` | Actualizar nombre de franquicia | 200 `{id, name}` |
+| POST | `/api/v1/franchises/{franchiseId}/branches` | Agregar sucursal a una franquicia | 201 `{id, name}` |
+| GET | `/api/v1/franchises/{franchiseId}/products/top-stock` | Producto con más stock por sucursal | 200 `[{productId, productName, stock, branchId, branchName}]` |
+| PATCH | `/api/v1/branches/{branchId}` | Actualizar nombre de sucursal | 200 `{id, name}` |
+| POST | `/api/v1/branches/{branchId}/products` | Agregar producto a una sucursal | 201 `{productId, branchId, productName, stock}` |
+| DELETE | `/api/v1/branches/{branchId}/products/{productId}` | Eliminar producto de una sucursal | 204 |
+| PATCH | `/api/v1/branches/{branchId}/products/{productId}/stock` | Actualizar stock de un producto | 200 `{productId, branchId, productName, stock}` |
+| PATCH | `/api/v1/products/{productId}` | Actualizar nombre de producto | 200 `{id, name}` |
 
 ### Documentación Swagger UI
 
@@ -65,12 +72,66 @@ http://localhost:8080/swagger-ui.html
 
 ---
 
-## Ejecutar la Aplicación Localmente
+## Ejecutar con Docker (Recomendado)
 
-Requiere Docker para levantar la base de datos PostgreSQL:
+Levanta la API y PostgreSQL con un solo comando:
 
 ```bash
-docker-compose up -d
+docker compose up --build
+```
+
+Esto:
+- Construye la imagen de la API (multi-stage build)
+- Levanta PostgreSQL 15.4 en el puerto `5432`
+- Levanta la API en el puerto `8080` con el perfil `local` (sin SSL)
+- Ejecuta las migraciones Flyway automáticamente al iniciar
+
+### Verificar que todo funciona
+
+```bash
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/swagger-ui.html
+```
+
+### Detener los contenedores
+
+```bash
+docker compose down
+```
+
+### Reconstruir desde cero (limpiar volumen de datos)
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+### Solo construir la imagen (sin levantar)
+
+```bash
+docker build -f deployment/Dockerfile -t franchises-api:latest .
+```
+
+### Ejecutar la imagen contra un PostgreSQL externo (ej. RDS)
+
+```bash
+docker run -p 8080:8080 \
+  -e DB_HOST=tu-host-rds.amazonaws.com \
+  -e DB_PORT=5432 \
+  -e DB_NAME=franchises_db \
+  -e DB_USER=franchises_admin \
+  -e DB_PASSWORD=tu-password \
+  franchises-api:latest
+```
+
+---
+
+## Ejecutar sin Docker
+
+Requiere PostgreSQL corriendo (puede ser el del docker-compose):
+
+```bash
+docker compose up -d postgres
 ./gradlew bootRun
 ```
 
