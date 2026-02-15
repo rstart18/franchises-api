@@ -126,12 +126,114 @@ docker run -p 8080:8080 \
 
 ---
 
+## API Desplegada en AWS
+
+Si no deseas ejecutar la API localmente, puedes consumir los endpoints directamente desde la URL pública del API Gateway desplegado en AWS:
+
+```
+https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com
+```
+
+### Ejemplos de consumo
+
+**Health Check:**
+```bash
+curl https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/actuator/health
+```
+
+**Crear franquicia:**
+```bash
+curl -X POST https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/franchises \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Mi Franquicia"}'
+```
+
+**Agregar sucursal:**
+```bash
+curl -X POST https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/franchises/1/branches \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Sucursal Centro"}'
+```
+
+**Agregar producto a sucursal:**
+```bash
+curl -X POST https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/branches/1/products \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Producto A", "stock": 50}'
+```
+
+**Actualizar stock:**
+```bash
+curl -X PATCH https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/branches/1/products/1/stock \
+  -H "Content-Type: application/json" \
+  -d '{"stock": 100}'
+```
+
+**Producto con más stock por sucursal:**
+```bash
+curl https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/franchises/1/products/top-stock
+```
+
+**Actualizar nombres:**
+```bash
+# Franquicia
+curl -X PATCH https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/franchises/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Nuevo Nombre Franquicia"}'
+
+# Sucursal
+curl -X PATCH https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/branches/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Nuevo Nombre Sucursal"}'
+
+# Producto
+curl -X PATCH https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/products/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Nuevo Nombre Producto"}'
+```
+
+**Eliminar producto:**
+```bash
+curl -X DELETE https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/branches/1/products/1
+```
+
+### Arquitectura AWS
+
+```
+Cliente → API Gateway (HTTP API) → VPC Link → ALB (interno) → ECS Fargate → RDS PostgreSQL
+```
+
+| Componente | Descripción |
+|------------|-------------|
+| **API Gateway** | Punto de entrada público (HTTPS) |
+| **VPC Link** | Conecta API Gateway con el ALB interno |
+| **ALB** | Balanceador de carga interno, health checks en `/actuator/health` |
+| **ECS Fargate** | Cluster serverless ejecutando el contenedor Docker |
+| **ECR** | Registro de imágenes Docker |
+| **SSM Parameter Store** | Variables de entorno sensibles (DB credentials) |
+| **RDS PostgreSQL** | Base de datos relacional |
+
+---
+
 ## Ejecutar sin Docker
 
-Requiere PostgreSQL corriendo (puede ser el del docker-compose):
-
 ```bash
-docker compose up -d postgres
+Crea un archivo .env en la raíz del proyecto:
+# =====================================================
+# Variables de entorno para FranchisesApi
+# Copia este archivo a .env y completa los valores
+# NUNCA commitees el .env real al repositorio
+# =====================================================
+
+# Base de datos (RDS / local)
+DB_HOST=franchises-api-dev-db.cyjc2g6ec3fc.us-east-1.rds.amazonaws.com
+DB_PORT=5432
+DB_NAME=franchises_db
+DB_USER=franchises_admin
+DB_PASSWORD=,9y3lXl7hx80
+```
+Y luego
+```bash
 ./gradlew bootRun
 ```
 
