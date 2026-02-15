@@ -4,6 +4,7 @@ import co.com.bancolombia.api.config.RequestValidator;
 import co.com.bancolombia.api.dto.AddProductToBranchRequest;
 import co.com.bancolombia.api.dto.BranchRequest;
 import co.com.bancolombia.api.dto.FranchiseRequest;
+import co.com.bancolombia.api.dto.UpdateStockRequest;
 import co.com.bancolombia.api.mapper.BranchMapper;
 import co.com.bancolombia.api.mapper.BranchProductMapper;
 import co.com.bancolombia.api.mapper.FranchiseMapper;
@@ -11,6 +12,7 @@ import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
+import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,7 @@ public class FranchiseHandler {
     private final AddProductToBranchUseCase addProductToBranchUseCase;
     private final BranchProductMapper branchProductMapper;
     private final RemoveProductFromBranchUseCase removeProductFromBranchUseCase;
+    private final UpdateProductStockUseCase updateProductStockUseCase;
 
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
         return request.bodyToMono(FranchiseRequest.class)
@@ -74,5 +77,17 @@ public class FranchiseHandler {
                 .then(ServerResponse.noContent().build())
                 .doOnSuccess(v -> log.info("Product {} removed from branch {} successfully", productId, branchId))
                 .doOnError(e -> log.error("Error removing product {} from branch {}: {}", productId, branchId, e.getMessage()));
+    }
+
+    public Mono<ServerResponse> updateStock(ServerRequest request) {
+        Long branchId = Long.valueOf(request.pathVariable("branchId"));
+        Long productId = Long.valueOf(request.pathVariable("productId"));
+        return request.bodyToMono(UpdateStockRequest.class)
+                .flatMap(validator::validate)
+                .flatMap(req -> updateProductStockUseCase.execute(branchId, productId, req.getStock()))
+                .map(branchProductMapper::toResponse)
+                .flatMap(response -> ServerResponse.ok().bodyValue(response))
+                .doOnSuccess(v -> log.info("Stock updated for product {} in branch {} successfully", productId, branchId))
+                .doOnError(e -> log.error("Error updating stock for product {} in branch {}: {}", productId, branchId, e.getMessage()));
     }
 }

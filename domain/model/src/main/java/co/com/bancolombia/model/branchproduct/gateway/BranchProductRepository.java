@@ -12,4 +12,6 @@ public interface BranchProductRepository {
     Mono<Void> softDelete(Long branchId, Long productId);
 
     Mono<BranchProduct> findActiveByBranchAndProduct(Long branchId, Long productId);
+
+    Mono<BranchProduct> updateStock(Long branchId, Long productId, Integer stock);
 }

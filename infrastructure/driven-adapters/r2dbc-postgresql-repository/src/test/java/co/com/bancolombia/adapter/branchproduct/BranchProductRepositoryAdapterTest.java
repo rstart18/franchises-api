@@ -150,4 +150,34 @@ class BranchProductRepositoryAdapterTest {
         StepVerifier.create(adapter.findActiveByBranchAndProduct(branchId, productId))
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("Should update stock and return updated branch product")
+    void shouldUpdateStock() {
+        // Given
+        Long branchId = 1L;
+        Long productId = 10L;
+        Integer newStock = 75;
+        BranchProductData existingData = BranchProductData.builder().productId(productId).branchId(branchId).stock(50).build();
+        BranchProductData savedData = BranchProductData.builder().productId(productId).branchId(branchId).stock(newStock).build();
+        ProductData productData = ProductData.builder().id(productId).name("Laptop").build();
+        BranchProduct expectedResult = new BranchProduct(productId, branchId, "Laptop", newStock);
+
+        when(branchProductR2dbcRepository.findActiveByBranchAndProduct(branchId, productId)).thenReturn(Mono.just(existingData));
+        when(branchProductR2dbcRepository.save(existingData)).thenReturn(Mono.just(savedData));
+        when(productR2dbcRepository.findById(productId)).thenReturn(Mono.just(productData));
+        when(mapper.toDomain(savedData, "Laptop")).thenReturn(expectedResult);
+
+        // When & Then
+        StepVerifier.create(adapter.updateStock(branchId, productId, newStock))
+                .expectNextMatches(result ->
+                        result.productId().equals(productId) &&
+                        result.branchId().equals(branchId) &&
+                        result.productName().equals("Laptop") &&
+                        result.stock().equals(newStock))
+                .verifyComplete();
+
+        verify(branchProductR2dbcRepository).findActiveByBranchAndProduct(branchId, productId);
+        verify(branchProductR2dbcRepository).save(existingData);
+    }
 }

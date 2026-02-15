@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -19,6 +20,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class BranchProductData {
+
+    @Id
+    private Long id;
 
     @Column("product_id")
     private Long productId;

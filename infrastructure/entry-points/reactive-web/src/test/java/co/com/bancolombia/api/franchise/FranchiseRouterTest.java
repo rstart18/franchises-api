@@ -16,6 +16,7 @@ import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
+import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,9 @@ class FranchiseRouterTest {
     @Mock
     private RemoveProductFromBranchUseCase removeProductFromBranchUseCase;
 
+    @Mock
+    private UpdateProductStockUseCase updateProductStockUseCase;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
@@ -65,7 +69,7 @@ class FranchiseRouterTest {
         FranchiseHandler franchiseHandler = new FranchiseHandler(
                 createFranchiseUseCase, franchiseMapper, requestValidator,
                 addBranchToFranchiseUseCase, branchMapper, addProductToBranchUseCase,
-                branchProductMapper, removeProductFromBranchUseCase);
+                branchProductMapper, removeProductFromBranchUseCase, updateProductStockUseCase);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
@@ -305,6 +309,84 @@ class FranchiseRouterTest {
 
         webTestClient.delete()
                 .uri("/api/v1/branches/1/products/99")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId}/products/{productId}/stock should return 200 with updated stock")
+    void shouldReturn200WhenStockUpdated() {
+        Long branchId = 1L;
+        Long productId = 10L;
+        Integer newStock = 75;
+        BranchProduct updatedBp = new BranchProduct(productId, branchId, "Laptop", newStock);
+        BranchProductResponse response = new BranchProductResponse(productId, branchId, "Laptop", newStock);
+
+        when(updateProductStockUseCase.execute(eq(branchId), eq(productId), eq(newStock)))
+                .thenReturn(Mono.just(updatedBp));
+        when(branchProductMapper.toResponse(updatedBp)).thenReturn(response);
+
+        webTestClient.patch()
+                .uri("/api/v1/branches/1/products/10/stock")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"stock\":75}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(BranchProductResponse.class)
+                .value(r -> {
+                    assert r.productId().equals(productId);
+                    assert r.branchId().equals(branchId);
+                    assert r.productName().equals("Laptop");
+                    assert r.stock().equals(newStock);
+                });
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId}/products/{productId}/stock should propagate error when branch not found")
+    void shouldPropagateErrorWhenBranchNotFoundForUpdateStock() {
+        when(updateProductStockUseCase.execute(eq(99L), eq(10L), eq(75)))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.BRANCH_NOT_FOUND)));
+
+        webTestClient.patch()
+                .uri("/api/v1/branches/99/products/10/stock")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"stock\":75}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId}/products/{productId}/stock should propagate error when product not associated")
+    void shouldPropagateErrorWhenProductNotAssociatedForUpdateStock() {
+        when(updateProductStockUseCase.execute(eq(1L), eq(99L), eq(75)))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.BRANCH_PRODUCT_NOT_FOUND)));
+
+        webTestClient.patch()
+                .uri("/api/v1/branches/1/products/99/stock")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"stock\":75}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId}/products/{productId}/stock should return 500 when stock is negative")
+    void shouldReturn500WhenUpdateStockIsNegative() {
+        webTestClient.patch()
+                .uri("/api/v1/branches/1/products/10/stock")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"stock\":-5}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId}/products/{productId}/stock should return 500 when stock is missing")
+    void shouldReturn500WhenUpdateStockIsMissing() {
+        webTestClient.patch()
+                .uri("/api/v1/branches/1/products/10/stock")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{}")
                 .exchange()
                 .expectStatus().is5xxServerError();
     }

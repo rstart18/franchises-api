@@ -10,6 +10,7 @@ public interface BranchProductDataMapper {
     @Mapping(source = "productName", target = "productName")
     BranchProduct toDomain(BranchProductData data, String productName);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)

@@ -137,16 +137,13 @@ class AddProductToBranchUseCaseTest {
         String productName = null;
         Integer stock = 50;
 
-        Branch branch = new Branch(branchId, "Main Branch");
-        when(branchRepository.findById(branchId)).thenReturn(Mono.just(branch));
-
         // When & Then
         StepVerifier.create(useCase.execute(branchId, productName, stock))
                 .expectErrorMatches(e -> e instanceof BusinessException be &&
                         be.getErrorCode() == DomainErrorCode.PRODUCT_NAME_REQUIRED)
                 .verify();
 
-        verify(branchRepository).findById(branchId);
+        verify(branchRepository, never()).findById(anyLong());
         verify(productRepository, never()).findByName(any());
         verify(productRepository, never()).save(any());
         verify(branchProductRepository, never()).save(any());
@@ -160,16 +157,13 @@ class AddProductToBranchUseCaseTest {
         String productName = "   ";
         Integer stock = 50;
 
-        Branch branch = new Branch(branchId, "Main Branch");
-        when(branchRepository.findById(branchId)).thenReturn(Mono.just(branch));
-
         // When & Then
         StepVerifier.create(useCase.execute(branchId, productName, stock))
                 .expectErrorMatches(e -> e instanceof BusinessException be &&
                         be.getErrorCode() == DomainErrorCode.PRODUCT_NAME_REQUIRED)
                 .verify();
 
-        verify(branchRepository).findById(branchId);
+        verify(branchRepository, never()).findById(anyLong());
         verify(productRepository, never()).findByName(any());
         verify(productRepository, never()).save(any());
         verify(branchProductRepository, never()).save(any());
@@ -183,16 +177,13 @@ class AddProductToBranchUseCaseTest {
         String productName = "Laptop";
         Integer stock = null;
 
-        Branch branch = new Branch(branchId, "Main Branch");
-        when(branchRepository.findById(branchId)).thenReturn(Mono.just(branch));
-
         // When & Then
         StepVerifier.create(useCase.execute(branchId, productName, stock))
                 .expectErrorMatches(e -> e instanceof BusinessException be &&
                         be.getErrorCode() == DomainErrorCode.PRODUCT_STOCK_INVALID)
                 .verify();
 
-        verify(branchRepository).findById(branchId);
+        verify(branchRepository, never()).findById(anyLong());
         verify(productRepository, never()).findByName(any());
         verify(productRepository, never()).save(any());
         verify(branchProductRepository, never()).save(any());
@@ -206,16 +197,13 @@ class AddProductToBranchUseCaseTest {
         String productName = "Laptop";
         Integer stock = -5;
 
-        Branch branch = new Branch(branchId, "Main Branch");
-        when(branchRepository.findById(branchId)).thenReturn(Mono.just(branch));
-
         // When & Then
         StepVerifier.create(useCase.execute(branchId, productName, stock))
                 .expectErrorMatches(e -> e instanceof BusinessException be &&
                         be.getErrorCode() == DomainErrorCode.PRODUCT_STOCK_INVALID)
                 .verify();
 
-        verify(branchRepository).findById(branchId);
+        verify(branchRepository, never()).findById(anyLong());
         verify(productRepository, never()).findByName(any());
         verify(productRepository, never()).save(any());
         verify(branchProductRepository, never()).save(any());

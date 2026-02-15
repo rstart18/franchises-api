@@ -7,6 +7,7 @@ import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.ErrorResponse;
 import co.com.bancolombia.api.dto.FranchiseRequest;
 import co.com.bancolombia.api.dto.FranchiseResponse;
+import co.com.bancolombia.api.dto.UpdateStockRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -159,6 +160,49 @@ public class FranchiseRouter {
                                             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/branches/{branchId}/products/{productId}/stock",
+                    method = RequestMethod.PATCH,
+                    beanClass = FranchiseHandler.class,
+                    beanMethod = "updateStock",
+                    operation = @Operation(
+                            operationId = "updateProductStock",
+                            summary = "Update product stock in a branch",
+                            description = "Updates the stock quantity of a product associated with a specific branch.",
+                            tags = {"Branches"},
+                            parameters = {
+                                    @Parameter(
+                                            name = "branchId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the branch",
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    ),
+                                    @Parameter(
+                                            name = "productId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the product",
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    )
+                            },
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = UpdateStockRequest.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "Stock updated successfully",
+                                            content = @Content(schema = @Schema(implementation = BranchProductResponse.class))),
+                                    @ApiResponse(responseCode = "400", description = "Validation error",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+                                    @ApiResponse(responseCode = "404", description = "Branch or product association not found",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+                            }
+                    )
             )
     })
     @Bean
@@ -169,7 +213,8 @@ public class FranchiseRouter {
                         .POST("/{franchiseId}/branches", handler::addBranch))
                 .path("/api/v1/branches", builder -> builder
                         .POST("/{branchId}/products", handler::addProduct)
-                        .DELETE("/{branchId}/products/{productId}", handler::removeProduct))
+                        .DELETE("/{branchId}/products/{productId}", handler::removeProduct)
+                        .PATCH("/{branchId}/products/{productId}/stock", handler::updateStock))
                 .build();
     }
 }
