@@ -1,5 +1,6 @@
 package co.com.bancolombia.adapter.franchise;
 
+import co.com.bancolombia.adapter.branch.BranchData;
 import co.com.bancolombia.model.branch.Branch;
 import co.com.bancolombia.model.franchise.Franchise;
 import org.mapstruct.Mapper;

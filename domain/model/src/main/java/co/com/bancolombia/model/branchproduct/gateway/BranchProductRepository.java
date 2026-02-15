@@ -14,4 +14,6 @@ public interface BranchProductRepository {
     Mono<BranchProduct> findActiveByBranchAndProduct(Long branchId, Long productId);
 
     Mono<BranchProduct> updateStock(Long branchId, Long productId, Integer stock);
+
+    Mono<BranchProduct> findTopStockByBranch(Long branchId);
 }

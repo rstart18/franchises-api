@@ -19,4 +19,7 @@ public interface BranchProductR2dbcRepository extends ReactiveCrudRepository<Bra
     @Query("UPDATE branch_products SET deleted_at = NOW() WHERE branch_id = :branchId AND product_id = :productId AND deleted_at IS NULL")
     Mono<Void> softDelete(Long branchId, Long productId);
 
+    @Query("SELECT * FROM branch_products WHERE branch_id = :branchId AND deleted_at IS NULL ORDER BY stock DESC LIMIT 1")
+    Mono<BranchProductData> findTopStockByBranch(Long branchId);
+
 }

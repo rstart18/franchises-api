@@ -180,4 +180,41 @@ class BranchProductRepositoryAdapterTest {
         verify(branchProductR2dbcRepository).findActiveByBranchAndProduct(branchId, productId);
         verify(branchProductR2dbcRepository).save(existingData);
     }
+
+    @Test
+    @DisplayName("Should find top stock product for a branch")
+    void shouldFindTopStockByBranch() {
+        // Given
+        Long branchId = 1L;
+        Long productId = 10L;
+        BranchProductData data = BranchProductData.builder().productId(productId).branchId(branchId).stock(150).build();
+        ProductData productData = ProductData.builder().id(productId).name("Laptop").build();
+        BranchProduct expectedResult = new BranchProduct(productId, branchId, "Laptop", 150);
+
+        when(branchProductR2dbcRepository.findTopStockByBranch(branchId)).thenReturn(Mono.just(data));
+        when(productR2dbcRepository.findById(productId)).thenReturn(Mono.just(productData));
+        when(mapper.toDomain(data, "Laptop")).thenReturn(expectedResult);
+
+        // When & Then
+        StepVerifier.create(adapter.findTopStockByBranch(branchId))
+                .expectNextMatches(result ->
+                        result.productId().equals(productId) &&
+                        result.branchId().equals(branchId) &&
+                        result.productName().equals("Laptop") &&
+                        result.stock().equals(150))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should return empty when no products in branch for top stock")
+    void shouldReturnEmptyWhenNoProductsInBranchForTopStock() {
+        // Given
+        Long branchId = 1L;
+
+        when(branchProductR2dbcRepository.findTopStockByBranch(branchId)).thenReturn(Mono.empty());
+
+        // When & Then
+        StepVerifier.create(adapter.findTopStockByBranch(branchId))
+                .verifyComplete();
+    }
 }

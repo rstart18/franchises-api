@@ -1,9 +1,11 @@
-package co.com.bancolombia.adapter.franchise;
+package co.com.bancolombia.adapter.branch;
 
+import co.com.bancolombia.adapter.franchise.FranchiseDataMapper;
 import co.com.bancolombia.model.branch.Branch;
 import co.com.bancolombia.model.branch.gateway.BranchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -22,6 +24,12 @@ public class BranchRepositoryAdapter implements BranchRepository {
     @Override
     public Mono<Branch> findById(Long id) {
         return branchR2dbcRepository.findById(id)
+                .map(mapper::branchToDomain);
+    }
+
+    @Override
+    public Flux<Branch> findAllByFranchiseId(Long franchiseId) {
+        return branchR2dbcRepository.findAllByFranchiseId(franchiseId)
                 .map(mapper::branchToDomain);
     }
 }

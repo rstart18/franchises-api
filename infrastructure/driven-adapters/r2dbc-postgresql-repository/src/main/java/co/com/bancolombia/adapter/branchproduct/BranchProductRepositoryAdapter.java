@@ -55,4 +55,12 @@ public class BranchProductRepositoryAdapter implements BranchProductRepository {
                         .map(productData -> mapper.toDomain(saved, productData.getName()))
                 );
     }
+
+    @Override
+    public Mono<BranchProduct> findTopStockByBranch(Long branchId) {
+        return branchProductR2dbcRepository.findTopStockByBranch(branchId)
+                .flatMap(data -> productR2dbcRepository.findById(data.getProductId())
+                        .map(productData -> mapper.toDomain(data, productData.getName()))
+                );
+    }
 }

@@ -1,5 +1,8 @@
 package co.com.bancolombia.adapter.franchise;
 
+import co.com.bancolombia.adapter.branch.BranchData;
+import co.com.bancolombia.adapter.branch.BranchR2dbcRepository;
+import co.com.bancolombia.adapter.branch.BranchRepositoryAdapter;
 import co.com.bancolombia.model.branch.Branch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -69,6 +73,36 @@ class BranchRepositoryAdapterTest {
         when(branchR2dbcRepository.findById(branchId)).thenReturn(Mono.empty());
 
         StepVerifier.create(adapter.findById(branchId))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should find all branches by franchise id")
+    void shouldFindAllByFranchiseId() {
+        Long franchiseId = 1L;
+        BranchData data1 = BranchData.builder().id(10L).name("North Branch").franchiseId(franchiseId).build();
+        BranchData data2 = BranchData.builder().id(20L).name("South Branch").franchiseId(franchiseId).build();
+        Branch branch1 = new Branch(10L, "North Branch");
+        Branch branch2 = new Branch(20L, "South Branch");
+
+        when(branchR2dbcRepository.findAllByFranchiseId(franchiseId)).thenReturn(Flux.just(data1, data2));
+        when(mapper.branchToDomain(data1)).thenReturn(branch1);
+        when(mapper.branchToDomain(data2)).thenReturn(branch2);
+
+        StepVerifier.create(adapter.findAllByFranchiseId(franchiseId))
+                .expectNextMatches(b -> b.id().equals(10L) && b.name().equals("North Branch"))
+                .expectNextMatches(b -> b.id().equals(20L) && b.name().equals("South Branch"))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should return empty flux when franchise has no branches")
+    void shouldReturnEmptyWhenNoBranches() {
+        Long franchiseId = 999L;
+
+        when(branchR2dbcRepository.findAllByFranchiseId(franchiseId)).thenReturn(Flux.empty());
+
+        StepVerifier.create(adapter.findAllByFranchiseId(franchiseId))
                 .verifyComplete();
     }
 }

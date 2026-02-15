@@ -11,6 +11,7 @@ import co.com.bancolombia.api.mapper.FranchiseMapper;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
+import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
 import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class FranchiseHandler {
     private final BranchProductMapper branchProductMapper;
     private final RemoveProductFromBranchUseCase removeProductFromBranchUseCase;
     private final UpdateProductStockUseCase updateProductStockUseCase;
+    private final GetTopStockProductsUseCase getTopStockProductsUseCase;
 
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
         return request.bodyToMono(FranchiseRequest.class)
@@ -89,5 +91,15 @@ public class FranchiseHandler {
                 .flatMap(response -> ServerResponse.ok().bodyValue(response))
                 .doOnSuccess(v -> log.info("Stock updated for product {} in branch {} successfully", productId, branchId))
                 .doOnError(e -> log.error("Error updating stock for product {} in branch {}: {}", productId, branchId, e.getMessage()));
+    }
+
+    public Mono<ServerResponse> getTopStockProducts(ServerRequest request) {
+        Long franchiseId = Long.valueOf(request.pathVariable("franchiseId"));
+        return getTopStockProductsUseCase.execute(franchiseId)
+                .map(branchProductMapper::toResponse)
+                .collectList()
+                .flatMap(list -> ServerResponse.ok().bodyValue(list))
+                .doOnSuccess(v -> log.info("Top stock products retrieved for franchise {}", franchiseId))
+                .doOnError(e -> log.error("Error getting top stock products for franchise {}: {}", franchiseId, e.getMessage()));
     }
 }

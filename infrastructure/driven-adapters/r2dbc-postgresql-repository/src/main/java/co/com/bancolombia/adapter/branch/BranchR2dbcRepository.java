@@ -1,4 +1,4 @@
-package co.com.bancolombia.adapter.franchise;
+package co.com.bancolombia.adapter.branch;
 
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;

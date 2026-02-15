@@ -7,10 +7,12 @@ import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.ErrorResponse;
 import co.com.bancolombia.api.dto.FranchiseRequest;
 import co.com.bancolombia.api.dto.FranchiseResponse;
+import co.com.bancolombia.api.dto.TopStockProductResponse;
 import co.com.bancolombia.api.dto.UpdateStockRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -203,6 +205,33 @@ public class FranchiseRouter {
                                             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/franchises/{franchiseId}/products/top-stock",
+                    method = RequestMethod.GET,
+                    beanClass = FranchiseHandler.class,
+                    beanMethod = "getTopStockProducts",
+                    operation = @Operation(
+                            operationId = "getTopStockProducts",
+                            summary = "Get top stock product per branch",
+                            description = "Returns the product with the highest stock for each branch of a specific franchise.",
+                            tags = {"Franchises"},
+                            parameters = {
+                                    @Parameter(
+                                            name = "franchiseId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the franchise",
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    )
+                            },
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "Top stock products retrieved successfully",
+                                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = TopStockProductResponse.class)))),
+                                    @ApiResponse(responseCode = "404", description = "Franchise not found",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+                            }
+                    )
             )
     })
     @Bean
@@ -210,7 +239,8 @@ public class FranchiseRouter {
         return RouterFunctions.route()
                 .path("/api/v1/franchises", builder -> builder
                         .POST("", handler::createFranchise)
-                        .POST("/{franchiseId}/branches", handler::addBranch))
+                        .POST("/{franchiseId}/branches", handler::addBranch)
+                        .GET("/{franchiseId}/products/top-stock", handler::getTopStockProducts))
                 .path("/api/v1/branches", builder -> builder
                         .POST("/{branchId}/products", handler::addProduct)
                         .DELETE("/{branchId}/products/{productId}", handler::removeProduct)

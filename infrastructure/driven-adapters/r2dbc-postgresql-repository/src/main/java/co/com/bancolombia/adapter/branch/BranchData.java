@@ -1,4 +1,4 @@
-package co.com.bancolombia.adapter.franchise;
+package co.com.bancolombia.adapter.branch;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

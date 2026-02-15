@@ -4,17 +4,20 @@ import co.com.bancolombia.api.config.RequestValidator;
 import co.com.bancolombia.api.dto.BranchProductResponse;
 import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.FranchiseResponse;
+import co.com.bancolombia.api.dto.TopStockProductResponse;
 import co.com.bancolombia.api.mapper.BranchMapper;
 import co.com.bancolombia.api.mapper.BranchProductMapper;
 import co.com.bancolombia.api.mapper.FranchiseMapper;
 import co.com.bancolombia.model.branch.Branch;
 import co.com.bancolombia.model.branchproduct.BranchProduct;
+import co.com.bancolombia.model.branchproduct.TopStockProduct;
 import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.Franchise;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
+import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
 import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
 import jakarta.validation.Validation;
@@ -27,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -60,6 +64,9 @@ class FranchiseRouterTest {
     @Mock
     private UpdateProductStockUseCase updateProductStockUseCase;
 
+    @Mock
+    private GetTopStockProductsUseCase getTopStockProductsUseCase;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
@@ -69,7 +76,8 @@ class FranchiseRouterTest {
         FranchiseHandler franchiseHandler = new FranchiseHandler(
                 createFranchiseUseCase, franchiseMapper, requestValidator,
                 addBranchToFranchiseUseCase, branchMapper, addProductToBranchUseCase,
-                branchProductMapper, removeProductFromBranchUseCase, updateProductStockUseCase);
+                branchProductMapper, removeProductFromBranchUseCase, updateProductStockUseCase,
+                getTopStockProductsUseCase);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
@@ -387,6 +395,59 @@ class FranchiseRouterTest {
                 .uri("/api/v1/branches/1/products/10/stock")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/franchises/{franchiseId}/products/top-stock should return 200 with top stock products")
+    void shouldReturn200WithTopStockProducts() {
+        TopStockProduct tp1 = new TopStockProduct(100L, "Laptop", 150, 10L, "North Branch");
+        TopStockProduct tp2 = new TopStockProduct(200L, "Phone", 80, 20L, "South Branch");
+        TopStockProductResponse resp1 = new TopStockProductResponse(100L, "Laptop", 150, 10L, "North Branch");
+        TopStockProductResponse resp2 = new TopStockProductResponse(200L, "Phone", 80, 20L, "South Branch");
+
+        when(getTopStockProductsUseCase.execute(eq(1L))).thenReturn(Flux.just(tp1, tp2));
+        when(branchProductMapper.toResponse(tp1)).thenReturn(resp1);
+        when(branchProductMapper.toResponse(tp2)).thenReturn(resp2);
+
+        webTestClient.get()
+                .uri("/api/v1/franchises/1/products/top-stock")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(TopStockProductResponse.class)
+                .hasSize(2)
+                .value(list -> {
+                    assert list.get(0).productName().equals("Laptop");
+                    assert list.get(0).stock().equals(150);
+                    assert list.get(0).branchName().equals("North Branch");
+                    assert list.get(1).productName().equals("Phone");
+                    assert list.get(1).stock().equals(80);
+                    assert list.get(1).branchName().equals("South Branch");
+                });
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/franchises/{franchiseId}/products/top-stock should return 200 with empty list")
+    void shouldReturn200WithEmptyListWhenNoProducts() {
+        when(getTopStockProductsUseCase.execute(eq(1L))).thenReturn(Flux.empty());
+
+        webTestClient.get()
+                .uri("/api/v1/franchises/1/products/top-stock")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(TopStockProductResponse.class)
+                .hasSize(0);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/franchises/{franchiseId}/products/top-stock should propagate error when franchise not found")
+    void shouldPropagateErrorWhenFranchiseNotFoundForTopStock() {
+        when(getTopStockProductsUseCase.execute(eq(999L)))
+                .thenReturn(Flux.error(new BusinessException(DomainErrorCode.FRANCHISE_NOT_FOUND)));
+
+        webTestClient.get()
+                .uri("/api/v1/franchises/999/products/top-stock")
                 .exchange()
                 .expectStatus().is5xxServerError();
     }
