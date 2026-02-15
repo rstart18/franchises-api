@@ -14,6 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -103,6 +104,55 @@ class BranchRepositoryAdapterTest {
         when(branchR2dbcRepository.findAllByFranchiseId(franchiseId)).thenReturn(Flux.empty());
 
         StepVerifier.create(adapter.findAllByFranchiseId(franchiseId))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should return true when branch name exists")
+    void shouldReturnTrueWhenBranchNameExists() {
+        when(branchR2dbcRepository.existsByName("North Branch")).thenReturn(Mono.just(true));
+
+        StepVerifier.create(adapter.existsByName("North Branch"))
+                .expectNext(true)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should return false when branch name does not exist")
+    void shouldReturnFalseWhenBranchNameDoesNotExist() {
+        when(branchR2dbcRepository.existsByName(anyString())).thenReturn(Mono.just(false));
+
+        StepVerifier.create(adapter.existsByName("New Branch"))
+                .expectNext(false)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should update branch name and return domain object")
+    void shouldUpdateBranchName() {
+        Long id = 10L;
+        String newName = "New North Branch";
+        BranchData existingData = BranchData.builder().id(id).name("North Branch").franchiseId(1L).build();
+        BranchData savedData = BranchData.builder().id(id).name(newName).franchiseId(1L).build();
+        Branch domainResult = new Branch(id, newName);
+
+        when(branchR2dbcRepository.findById(id)).thenReturn(Mono.just(existingData));
+        when(branchR2dbcRepository.save(existingData)).thenReturn(Mono.just(savedData));
+        when(mapper.branchToDomain(savedData)).thenReturn(domainResult);
+
+        StepVerifier.create(adapter.updateName(id, newName))
+                .expectNextMatches(result ->
+                        result.id().equals(id) &&
+                        result.name().equals(newName))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should return empty when updating name of non-existent branch")
+    void shouldReturnEmptyWhenUpdatingNameOfNonExistentBranch() {
+        when(branchR2dbcRepository.findById(999L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(adapter.updateName(999L, "New Name"))
                 .verifyComplete();
     }
 }

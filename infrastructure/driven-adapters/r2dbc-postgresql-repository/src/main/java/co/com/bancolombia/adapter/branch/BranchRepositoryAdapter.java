@@ -32,4 +32,19 @@ public class BranchRepositoryAdapter implements BranchRepository {
         return branchR2dbcRepository.findAllByFranchiseId(franchiseId)
                 .map(mapper::branchToDomain);
     }
+
+    @Override
+    public Mono<Boolean> existsByName(String name) {
+        return branchR2dbcRepository.existsByName(name);
+    }
+
+    @Override
+    public Mono<Branch> updateName(Long id, String newName) {
+        return branchR2dbcRepository.findById(id)
+                .flatMap(data -> {
+                    data.setName(newName);
+                    return branchR2dbcRepository.save(data);
+                })
+                .map(mapper::branchToDomain);
+    }
 }

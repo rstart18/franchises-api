@@ -4,6 +4,7 @@ import co.com.bancolombia.api.config.RequestValidator;
 import co.com.bancolombia.api.dto.AddProductToBranchRequest;
 import co.com.bancolombia.api.dto.BranchRequest;
 import co.com.bancolombia.api.dto.FranchiseRequest;
+import co.com.bancolombia.api.dto.UpdateBranchNameRequest;
 import co.com.bancolombia.api.dto.UpdateFranchiseNameRequest;
 import co.com.bancolombia.api.dto.UpdateStockRequest;
 import co.com.bancolombia.api.mapper.BranchMapper;
@@ -12,6 +13,7 @@ import co.com.bancolombia.api.mapper.FranchiseMapper;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.UpdateFranchiseNameUseCase;
+import co.com.bancolombia.usecase.branch.UpdateBranchNameUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
@@ -40,6 +42,7 @@ public class FranchiseHandler {
     private final UpdateProductStockUseCase updateProductStockUseCase;
     private final GetTopStockProductsUseCase getTopStockProductsUseCase;
     private final UpdateFranchiseNameUseCase updateFranchiseNameUseCase;
+    private final UpdateBranchNameUseCase updateBranchNameUseCase;
 
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
         return request.bodyToMono(FranchiseRequest.class)
@@ -105,6 +108,17 @@ public class FranchiseHandler {
                 .flatMap(response -> ServerResponse.ok().bodyValue(response))
                 .doOnSuccess(v -> log.info("Franchise {} name updated successfully", franchiseId))
                 .doOnError(e -> log.error("Error updating franchise {} name: {}", franchiseId, e.getMessage()));
+    }
+
+    public Mono<ServerResponse> updateBranchName(ServerRequest request) {
+        Long branchId = Long.valueOf(request.pathVariable("branchId"));
+        return request.bodyToMono(UpdateBranchNameRequest.class)
+                .flatMap(validator::validate)
+                .flatMap(req -> updateBranchNameUseCase.execute(branchId, req.getName()))
+                .map(branchMapper::toResponse)
+                .flatMap(response -> ServerResponse.ok().bodyValue(response))
+                .doOnSuccess(v -> log.info("Branch {} name updated successfully", branchId))
+                .doOnError(e -> log.error("Error updating branch {} name: {}", branchId, e.getMessage()));
     }
 
     public Mono<ServerResponse> getTopStockProducts(ServerRequest request) {

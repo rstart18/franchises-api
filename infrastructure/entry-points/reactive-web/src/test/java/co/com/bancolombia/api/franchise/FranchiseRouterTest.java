@@ -17,6 +17,7 @@ import co.com.bancolombia.model.franchise.Franchise;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.UpdateFranchiseNameUseCase;
+import co.com.bancolombia.usecase.branch.UpdateBranchNameUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
@@ -71,6 +72,9 @@ class FranchiseRouterTest {
     @Mock
     private UpdateFranchiseNameUseCase updateFranchiseNameUseCase;
 
+    @Mock
+    private UpdateBranchNameUseCase updateBranchNameUseCase;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
@@ -81,7 +85,7 @@ class FranchiseRouterTest {
                 createFranchiseUseCase, franchiseMapper, requestValidator,
                 addBranchToFranchiseUseCase, branchMapper, addProductToBranchUseCase,
                 branchProductMapper, removeProductFromBranchUseCase, updateProductStockUseCase,
-                getTopStockProductsUseCase, updateFranchiseNameUseCase);
+                getTopStockProductsUseCase, updateFranchiseNameUseCase, updateBranchNameUseCase);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
@@ -514,6 +518,70 @@ class FranchiseRouterTest {
     void shouldReturn500WhenFranchiseNameIsBlankForUpdate() {
         webTestClient.patch()
                 .uri("/api/v1/franchises/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId} should return 200 with updated branch")
+    void shouldReturn200WhenBranchNameUpdated() {
+        Long branchId = 10L;
+        String newName = "New North Branch";
+        Branch updated = new Branch(branchId, newName);
+        BranchResponse response = new BranchResponse(branchId, newName);
+
+        when(updateBranchNameUseCase.execute(eq(branchId), eq(newName)))
+                .thenReturn(Mono.just(updated));
+        when(branchMapper.toResponse(updated)).thenReturn(response);
+
+        webTestClient.patch()
+                .uri("/api/v1/branches/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"New North Branch\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(BranchResponse.class)
+                .value(r -> {
+                    assert r.id().equals(branchId);
+                    assert r.name().equals(newName);
+                });
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId} should propagate error when branch not found")
+    void shouldPropagateErrorWhenBranchNotFoundForUpdateName() {
+        when(updateBranchNameUseCase.execute(eq(999L), eq("New Name")))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.BRANCH_NOT_FOUND)));
+
+        webTestClient.patch()
+                .uri("/api/v1/branches/999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"New Name\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId} should propagate error when name already exists")
+    void shouldPropagateErrorWhenBranchNameAlreadyExists() {
+        when(updateBranchNameUseCase.execute(eq(10L), eq("Existing Branch")))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.BRANCH_NAME_ALREADY_EXISTS)));
+
+        webTestClient.patch()
+                .uri("/api/v1/branches/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Existing Branch\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/branches/{branchId} should return 500 when name is blank")
+    void shouldReturn500WhenBranchNameIsBlankForUpdate() {
+        webTestClient.patch()
+                .uri("/api/v1/branches/10")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{\"name\":\"\"}")
                 .exchange()

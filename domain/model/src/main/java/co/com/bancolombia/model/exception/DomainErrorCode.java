@@ -11,6 +11,7 @@ public enum DomainErrorCode {
     FRANCHISE_NAME_ALREADY_EXISTS(409, "A franchise with that name already exists"),
     FRANCHISE_NOT_FOUND(404, "Franchise not found"),
     BRANCH_NAME_REQUIRED(400, "Branch name is required"),
+    BRANCH_NAME_ALREADY_EXISTS(409, "A branch with that name already exists"),
     BRANCH_NOT_FOUND(404, "Branch not found"),
     PRODUCT_NAME_REQUIRED(400, "Product name is required"),
     PRODUCT_STOCK_INVALID(400, "Product stock must be zero or greater"),
