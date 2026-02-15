@@ -46,3 +46,7 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
   show-actuator: false
+
+notification:
+  service:
+    base-url: ${NOTIFICATION_URL:http://localhost:8081}

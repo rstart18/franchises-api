@@ -5,6 +5,7 @@ dependencies {
     implementation project(':model')
     implementation project(':usecase')
     implementation project(':r2dbc-postgresql-repository')
+    implementation project(':notification-adapter')
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'

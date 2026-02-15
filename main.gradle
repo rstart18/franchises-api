@@ -103,6 +103,7 @@ subprojects {
                     'co.com.bancolombia.adapter.franchise.FranchiseDataMapperImpl',
                     'co.com.bancolombia.api.franchise.*Mapper*',
                     'co.com.bancolombia.adapter.config.R2dbcConfig',
+                    'co.com.bancolombia.adapter.notification.NotificationConfig',
                     'co.com.bancolombia.config.FlywayConfig',
                     'co.com.bancolombia.config.UseCasesConfig',
                 ]
