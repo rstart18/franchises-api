@@ -93,14 +93,18 @@ subprojects {
                 }
                 excludes = [
                     'co.com.bancolombia.MainApplication',
-                    'co.com.bancolombia.config.*',
                     'co.com.bancolombia.api.config.openapi.*',
                     'co.com.bancolombia.api.RouterRest',
                     'co.com.bancolombia.api.Handler',
                     'co.com.bancolombia.api.dto.*',
                     'co.com.bancolombia.adapter.*.data.*',
+                    'co.com.bancolombia.adapter.*.*Data',
                     'co.com.bancolombia.adapter.*Mapper*',
+                    'co.com.bancolombia.adapter.franchise.FranchiseDataMapperImpl',
                     'co.com.bancolombia.api.franchise.*Mapper*',
+                    'co.com.bancolombia.adapter.config.R2dbcConfig',
+                    'co.com.bancolombia.config.FlywayConfig',
+                    'co.com.bancolombia.config.UseCasesConfig',
                 ]
             }
         }

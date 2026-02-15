@@ -23,4 +23,10 @@ public class FranchiseRepositoryAdapter implements FranchiseRepository {
     public Mono<Boolean> existsByName(String name) {
         return franchiseR2dbcRepository.existsByName(name);
     }
+
+    @Override
+    public Mono<Franchise> findById(Long id) {
+        return franchiseR2dbcRepository.findById(id)
+                .map(mapper::toDomain);
+    }
 }

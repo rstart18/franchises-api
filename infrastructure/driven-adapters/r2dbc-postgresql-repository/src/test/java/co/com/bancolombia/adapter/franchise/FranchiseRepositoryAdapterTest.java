@@ -67,4 +67,30 @@ class FranchiseRepositoryAdapterTest {
                 .expectNext(false)
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("Should return franchise when found by id")
+    void shouldReturnFranchiseWhenFound() {
+        Long id = 1L;
+        FranchiseData franchiseData = FranchiseData.builder().id(id).name("Burger Kingdom").build();
+        Franchise domainResult = Franchise.builder().id(id).name("Burger Kingdom").build();
+
+        when(franchiseR2dbcRepository.findById(id)).thenReturn(Mono.just(franchiseData));
+        when(mapper.toDomain(franchiseData)).thenReturn(domainResult);
+
+        StepVerifier.create(adapter.findById(id))
+                .expectNextMatches(result ->
+                        result.getId().equals(id) &&
+                        result.getName().equals("Burger Kingdom"))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should return empty when franchise not found by id")
+    void shouldReturnEmptyWhenFranchiseNotFound() {
+        when(franchiseR2dbcRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(adapter.findById(99L))
+                .verifyComplete();
+    }
 }

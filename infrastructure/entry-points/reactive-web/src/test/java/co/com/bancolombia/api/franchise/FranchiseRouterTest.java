@@ -1,10 +1,13 @@
 package co.com.bancolombia.api.franchise;
 
 import co.com.bancolombia.api.config.RequestValidator;
+import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.FranchiseResponse;
+import co.com.bancolombia.model.branch.Branch;
 import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.Franchise;
+import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -19,6 +22,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,13 +34,21 @@ class FranchiseRouterTest {
     @Mock
     private FranchiseMapper franchiseMapper;
 
+    @Mock
+    private AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
+
+    @Mock
+    private BranchMapper branchMapper;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
     void setUp() {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         RequestValidator requestValidator = new RequestValidator(validator);
-        FranchiseHandler franchiseHandler = new FranchiseHandler(createFranchiseUseCase, franchiseMapper, requestValidator);
+        FranchiseHandler franchiseHandler = new FranchiseHandler(
+                createFranchiseUseCase, franchiseMapper, requestValidator,
+                addBranchToFranchiseUseCase, branchMapper);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
@@ -78,6 +90,56 @@ class FranchiseRouterTest {
                 .uri("/api/v1/franchises")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{\"name\":\"Burger Kingdom\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/franchises/{id}/branches should return 201 with the created branch")
+    void shouldReturn201WhenBranchAddedToFranchise() {
+        Branch domainBranch = new Branch(null, "North Branch");
+        Branch savedBranch = new Branch(10L, "North Branch");
+        BranchResponse response = new BranchResponse(10L, "North Branch");
+
+        when(branchMapper.toDomain(any())).thenReturn(domainBranch);
+        when(addBranchToFranchiseUseCase.execute(eq(1L), any())).thenReturn(Mono.just(savedBranch));
+        when(branchMapper.toResponse(savedBranch)).thenReturn(response);
+
+        webTestClient.post()
+                .uri("/api/v1/franchises/1/branches")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"North Branch\"}")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(BranchResponse.class)
+                .value(r -> {
+                    assert r.id().equals(10L);
+                    assert r.name().equals("North Branch");
+                });
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/franchises/{id}/branches should propagate error when franchise not found")
+    void shouldPropagateErrorWhenFranchiseNotFoundForBranch() {
+        when(branchMapper.toDomain(any())).thenReturn(new Branch(null, "North Branch"));
+        when(addBranchToFranchiseUseCase.execute(any(), any()))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.FRANCHISE_NOT_FOUND)));
+
+        webTestClient.post()
+                .uri("/api/v1/franchises/99/branches")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"North Branch\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/franchises/{id}/branches should return 500 when branch name is blank (no GlobalWebExceptionHandler in unit test)")
+    void shouldReturn500WhenBranchNameIsBlank() {
+        webTestClient.post()
+                .uri("/api/v1/franchises/1/branches")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"\"}")
                 .exchange()
                 .expectStatus().is5xxServerError();
     }

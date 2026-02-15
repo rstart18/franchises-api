@@ -1,9 +1,13 @@
 package co.com.bancolombia.api.franchise;
 
+import co.com.bancolombia.api.dto.BranchRequest;
+import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.ErrorResponse;
 import co.com.bancolombia.api.dto.FranchiseRequest;
 import co.com.bancolombia.api.dto.FranchiseResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -48,13 +52,50 @@ public class FranchiseRouter {
                                             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/franchises/{franchiseId}/branches",
+                    method = RequestMethod.POST,
+                    beanClass = FranchiseHandler.class,
+                    beanMethod = "addBranch",
+                    operation = @Operation(
+                            operationId = "addBranchToFranchise",
+                            summary = "Add a branch to a franchise",
+                            description = "Creates a new branch and associates it with an existing franchise.",
+                            tags = {"Franchises"},
+                            parameters = {
+                                    @Parameter(
+                                            name = "franchiseId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the franchise",
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    )
+                            },
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = BranchRequest.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(responseCode = "201", description = "Branch added successfully",
+                                            content = @Content(schema = @Schema(implementation = BranchResponse.class))),
+                                    @ApiResponse(responseCode = "400", description = "Validation error",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+                                    @ApiResponse(responseCode = "404", description = "Franchise not found",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+                            }
+                    )
             )
     })
     @Bean
     public RouterFunction<ServerResponse> franchiseRoutes(FranchiseHandler handler) {
         return RouterFunctions.route()
                 .path("/api/v1/franchises", builder -> builder
-                        .POST("", handler::createFranchise))
+                        .POST("", handler::createFranchise)
+                        .POST("/{franchiseId}/branches", handler::addBranch))
                 .build();
     }
 }

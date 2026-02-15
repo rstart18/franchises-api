@@ -42,6 +42,75 @@ Los entry points representan los puntos de entrada de la aplicación o el inicio
 
 ## Application
 
-Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función “public static void main(String[] args)”.
+Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función "public static void main(String[] args)".
 
 **Los beans de los casos de uso se disponibilizan automaticamente gracias a un '@ComponentScan' ubicado en esta capa.**
+
+---
+
+## Endpoints Disponibles
+
+| Método | Ruta | Descripción | Respuesta |
+|--------|------|-------------|-----------|
+| POST | `/api/v1/franchises` | Crear una nueva franquicia | 201 `{id, name}` |
+| POST | `/api/v1/franchises/{franchiseId}/branches` | Agregar una sucursal a una franquicia existente | 201 `{id, name}` |
+
+### Documentación Swagger UI
+
+Con la aplicación corriendo, accede a la documentación interactiva en:
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+---
+
+## Ejecutar la Aplicación Localmente
+
+Requiere Docker para levantar la base de datos PostgreSQL:
+
+```bash
+docker-compose up -d
+./gradlew bootRun
+```
+
+---
+
+## Tests y Cobertura de Código
+
+### Ejecutar tests y generar reporte Jacoco
+
+```bash
+./gradlew test jacocoTestReport
+```
+
+El reporte HTML de cobertura se genera en cada módulo en:
+
+```
+build/reports/jacocoHtml/index.html
+```
+
+### Verificar umbral mínimo de cobertura (90%)
+
+```bash
+./gradlew check
+```
+
+Este comando ejecuta los tests, genera el reporte Jacoco y falla si la cobertura de líneas es menor al 90% en cualquier módulo.
+
+### Pipeline completo (build + tests + cobertura)
+
+```bash
+./gradlew build
+```
+
+---
+
+## Tecnologías
+
+- **Java 25** + **Spring Boot 4.0.1** + **Spring WebFlux** (reactivo)
+- **R2DBC** (PostgreSQL reactivo) + **Flyway** (migraciones)
+- **MapStruct 1.5.5** (mapeo de objetos)
+- **Jacoco 0.8.14** (cobertura de código ≥ 90%)
+- **ArchUnit** (validación de arquitectura en tests)
+- **SpringDoc 3.0.1** (documentación OpenAPI/Swagger)
