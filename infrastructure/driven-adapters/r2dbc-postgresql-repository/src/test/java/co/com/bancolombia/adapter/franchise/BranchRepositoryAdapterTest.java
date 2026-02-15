@@ -45,4 +45,30 @@ class BranchRepositoryAdapterTest {
                 .expectNextMatches(result -> result.id().equals(10L) && result.name().equals("North Branch"))
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("Should find branch by id successfully")
+    void shouldFindBranchByIdSuccessfully() {
+        Long branchId = 10L;
+        BranchData branchData = BranchData.builder().id(branchId).name("North Branch").franchiseId(1L).build();
+        Branch expectedBranch = new Branch(branchId, "North Branch");
+
+        when(branchR2dbcRepository.findById(branchId)).thenReturn(Mono.just(branchData));
+        when(mapper.branchToDomain(branchData)).thenReturn(expectedBranch);
+
+        StepVerifier.create(adapter.findById(branchId))
+                .expectNextMatches(result -> result.id().equals(branchId) && result.name().equals("North Branch"))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should return empty when branch not found")
+    void shouldReturnEmptyWhenBranchNotFound() {
+        Long branchId = 999L;
+
+        when(branchR2dbcRepository.findById(branchId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(adapter.findById(branchId))
+                .verifyComplete();
+    }
 }

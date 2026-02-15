@@ -1,10 +1,13 @@
 package co.com.bancolombia.api.franchise;
 
 import co.com.bancolombia.api.config.RequestValidator;
+import co.com.bancolombia.api.dto.AddProductToBranchRequest;
+import co.com.bancolombia.api.dto.BranchProductResponse;
 import co.com.bancolombia.api.dto.BranchRequest;
 import co.com.bancolombia.api.dto.FranchiseRequest;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
+import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,6 +26,8 @@ public class FranchiseHandler {
     private final RequestValidator validator;
     private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
     private final BranchMapper branchMapper;
+    private final AddProductToBranchUseCase addProductToBranchUseCase;
+    private final BranchProductMapper branchProductMapper;
 
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
         return request.bodyToMono(FranchiseRequest.class)
@@ -45,5 +50,16 @@ public class FranchiseHandler {
                 .flatMap(response -> ServerResponse.status(HttpStatus.CREATED).bodyValue(response))
                 .doOnSuccess(v -> log.info("Branch added to franchise {} successfully", franchiseId))
                 .doOnError(e -> log.error("Error adding branch to franchise {}: {}", franchiseId, e.getMessage()));
+    }
+
+    public Mono<ServerResponse> addProduct(ServerRequest request) {
+        Long branchId = Long.valueOf(request.pathVariable("branchId"));
+        return request.bodyToMono(AddProductToBranchRequest.class)
+                .flatMap(validator::validate)
+                .flatMap(req -> addProductToBranchUseCase.execute(branchId, req.getName(), req.getStock()))
+                .map(branchProductMapper::toResponse)
+                .flatMap(response -> ServerResponse.status(HttpStatus.CREATED).bodyValue(response))
+                .doOnSuccess(v -> log.info("Product added to branch {} successfully", branchId))
+                .doOnError(e -> log.error("Error adding product to branch {}: {}", branchId, e.getMessage()));
     }
 }

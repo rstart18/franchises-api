@@ -18,4 +18,10 @@ public class BranchRepositoryAdapter implements BranchRepository {
         return branchR2dbcRepository.save(mapper.branchToData(branch, franchiseId))
                 .map(mapper::branchToDomain);
     }
+
+    @Override
+    public Mono<Branch> findById(Long id) {
+        return branchR2dbcRepository.findById(id)
+                .map(mapper::branchToDomain);
+    }
 }

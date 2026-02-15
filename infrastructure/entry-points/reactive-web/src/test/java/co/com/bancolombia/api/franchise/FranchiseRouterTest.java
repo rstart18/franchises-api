@@ -1,14 +1,17 @@
 package co.com.bancolombia.api.franchise;
 
 import co.com.bancolombia.api.config.RequestValidator;
+import co.com.bancolombia.api.dto.BranchProductResponse;
 import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.FranchiseResponse;
 import co.com.bancolombia.model.branch.Branch;
+import co.com.bancolombia.model.branchproduct.BranchProduct;
 import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.Franchise;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
+import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +43,12 @@ class FranchiseRouterTest {
     @Mock
     private BranchMapper branchMapper;
 
+    @Mock
+    private AddProductToBranchUseCase addProductToBranchUseCase;
+
+    @Mock
+    private BranchProductMapper branchProductMapper;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
@@ -48,7 +57,8 @@ class FranchiseRouterTest {
         RequestValidator requestValidator = new RequestValidator(validator);
         FranchiseHandler franchiseHandler = new FranchiseHandler(
                 createFranchiseUseCase, franchiseMapper, requestValidator,
-                addBranchToFranchiseUseCase, branchMapper);
+                addBranchToFranchiseUseCase, branchMapper, addProductToBranchUseCase,
+                branchProductMapper);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
@@ -142,5 +152,114 @@ class FranchiseRouterTest {
                 .bodyValue("{\"name\":\"\"}")
                 .exchange()
                 .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/branches/{id}/products should return 201 with created branch-product")
+    void shouldReturn201WhenProductAddedToBranch() {
+        Long branchId = 1L;
+        String productName = "Laptop";
+        Integer stock = 50;
+        BranchProduct branchProduct = new BranchProduct(10L, branchId, productName, stock);
+        BranchProductResponse response = new BranchProductResponse(10L, branchId, productName, stock);
+
+        when(addProductToBranchUseCase.execute(eq(branchId), eq(productName), eq(stock)))
+                .thenReturn(Mono.just(branchProduct));
+        when(branchProductMapper.toResponse(branchProduct)).thenReturn(response);
+
+        webTestClient.post()
+                .uri("/api/v1/branches/1/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Laptop\",\"stock\":50}")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(BranchProductResponse.class)
+                .value(r -> {
+                    assert r.productId().equals(10L);
+                    assert r.branchId().equals(branchId);
+                    assert r.productName().equals(productName);
+                    assert r.stock().equals(stock);
+                });
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/branches/{id}/products should propagate error when branch not found")
+    void shouldPropagateErrorWhenBranchNotFoundForProduct() {
+        when(addProductToBranchUseCase.execute(any(), any(), any()))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.BRANCH_NOT_FOUND)));
+
+        webTestClient.post()
+                .uri("/api/v1/branches/999/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Laptop\",\"stock\":50}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/branches/{id}/products should return 500 when product name is blank")
+    void shouldReturn500WhenProductNameIsBlank() {
+        webTestClient.post()
+                .uri("/api/v1/branches/1/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"\",\"stock\":50}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/branches/{id}/products should return 500 when product stock is negative")
+    void shouldReturn500WhenProductStockIsNegative() {
+        webTestClient.post()
+                .uri("/api/v1/branches/1/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Laptop\",\"stock\":-5}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/branches/{id}/products should allow adding same product to different branches")
+    void shouldAllowAddingSameProductToDifferentBranches() {
+        Long branchId1 = 1L;
+        Long branchId2 = 2L;
+        String productName = "Laptop";
+        BranchProduct branchProduct1 = new BranchProduct(10L, branchId1, productName, 50);
+        BranchProduct branchProduct2 = new BranchProduct(10L, branchId2, productName, 30);
+        BranchProductResponse response1 = new BranchProductResponse(10L, branchId1, productName, 50);
+        BranchProductResponse response2 = new BranchProductResponse(10L, branchId2, productName, 30);
+
+        when(addProductToBranchUseCase.execute(eq(branchId1), eq(productName), eq(50)))
+                .thenReturn(Mono.just(branchProduct1));
+        when(addProductToBranchUseCase.execute(eq(branchId2), eq(productName), eq(30)))
+                .thenReturn(Mono.just(branchProduct2));
+        when(branchProductMapper.toResponse(branchProduct1)).thenReturn(response1);
+        when(branchProductMapper.toResponse(branchProduct2)).thenReturn(response2);
+
+        // Add to first branch
+        webTestClient.post()
+                .uri("/api/v1/branches/1/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Laptop\",\"stock\":50}")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(BranchProductResponse.class)
+                .value(r -> {
+                    assert r.productId().equals(10L);
+                    assert r.stock().equals(50);
+                });
+
+        // Add same product to second branch with different stock
+        webTestClient.post()
+                .uri("/api/v1/branches/2/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Laptop\",\"stock\":30}")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(BranchProductResponse.class)
+                .value(r -> {
+                    assert r.productId().equals(10L);
+                    assert r.stock().equals(30);
+                });
     }
 }

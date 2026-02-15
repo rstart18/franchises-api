@@ -1,3 +1,3 @@
 package co.com.bancolombia.model.product;
 
-public record Product(Long id, String name, Integer stock) {}
+public record Product(Long id, String name) {}

@@ -1,5 +1,7 @@
 package co.com.bancolombia.api.franchise;
 
+import co.com.bancolombia.api.dto.AddProductToBranchRequest;
+import co.com.bancolombia.api.dto.BranchProductResponse;
 import co.com.bancolombia.api.dto.BranchRequest;
 import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.ErrorResponse;
@@ -88,6 +90,42 @@ public class FranchiseRouter {
                                             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/branches/{branchId}/products",
+                    method = RequestMethod.POST,
+                    beanClass = FranchiseHandler.class,
+                    beanMethod = "addProduct",
+                    operation = @Operation(
+                            operationId = "addProductToBranch",
+                            summary = "Add a product to a branch",
+                            description = "Creates a new product (or reuses existing) and associates it with a branch. Each branch can have different stock for the same product.",
+                            tags = {"Branches"},
+                            parameters = {
+                                    @Parameter(
+                                            name = "branchId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the branch",
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    )
+                            },
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = AddProductToBranchRequest.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(responseCode = "201", description = "Product added to branch successfully",
+                                            content = @Content(schema = @Schema(implementation = BranchProductResponse.class))),
+                                    @ApiResponse(responseCode = "400", description = "Validation error",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+                                    @ApiResponse(responseCode = "404", description = "Branch not found",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+                            }
+                    )
             )
     })
     @Bean
@@ -96,6 +134,8 @@ public class FranchiseRouter {
                 .path("/api/v1/franchises", builder -> builder
                         .POST("", handler::createFranchise)
                         .POST("/{franchiseId}/branches", handler::addBranch))
+                .path("/api/v1/branches", builder -> builder
+                        .POST("/{branchId}/products", handler::addProduct))
                 .build();
     }
 }

@@ -313,6 +313,8 @@ $RECYCLE.BIN/
 .gradle
 build/
 
+.claude/
+
 # Ignore Gradle GUI config
 gradle-app.setting
 
