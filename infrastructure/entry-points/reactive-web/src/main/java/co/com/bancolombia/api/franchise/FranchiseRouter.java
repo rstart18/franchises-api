@@ -8,8 +8,10 @@ import co.com.bancolombia.api.dto.ErrorResponse;
 import co.com.bancolombia.api.dto.FranchiseRequest;
 import co.com.bancolombia.api.dto.FranchiseResponse;
 import co.com.bancolombia.api.dto.TopStockProductResponse;
+import co.com.bancolombia.api.dto.ProductResponse;
 import co.com.bancolombia.api.dto.UpdateBranchNameRequest;
 import co.com.bancolombia.api.dto.UpdateFranchiseNameRequest;
+import co.com.bancolombia.api.dto.UpdateProductNameRequest;
 import co.com.bancolombia.api.dto.UpdateStockRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -285,6 +287,44 @@ public class FranchiseRouter {
                     )
             ),
             @RouterOperation(
+                    path = "/api/v1/products/{productId}",
+                    method = RequestMethod.PATCH,
+                    beanClass = FranchiseHandler.class,
+                    beanMethod = "updateProductName",
+                    operation = @Operation(
+                            operationId = "updateProductName",
+                            summary = "Update a product name",
+                            description = "Updates the name of an existing product.",
+                            tags = {"Products"},
+                            parameters = {
+                                    @Parameter(
+                                            name = "productId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the product",
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    )
+                            },
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = UpdateProductNameRequest.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "Product name updated successfully",
+                                            content = @Content(schema = @Schema(implementation = ProductResponse.class))),
+                                    @ApiResponse(responseCode = "400", description = "Validation error",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+                                    @ApiResponse(responseCode = "404", description = "Product not found",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+                                    @ApiResponse(responseCode = "409", description = "Product name already exists",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+                            }
+                    )
+            ),
+            @RouterOperation(
                     path = "/api/v1/franchises/{franchiseId}/products/top-stock",
                     method = RequestMethod.GET,
                     beanClass = FranchiseHandler.class,
@@ -325,6 +365,8 @@ public class FranchiseRouter {
                         .DELETE("/{branchId}/products/{productId}", handler::removeProduct)
                         .PATCH("/{branchId}/products/{productId}/stock", handler::updateStock)
                         .PATCH("/{branchId}", handler::updateBranchName))
+                .path("/api/v1/products", builder -> builder
+                        .PATCH("/{productId}", handler::updateProductName))
                 .build();
     }
 }

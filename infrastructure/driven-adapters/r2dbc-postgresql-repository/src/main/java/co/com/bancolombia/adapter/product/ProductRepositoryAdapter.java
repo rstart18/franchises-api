@@ -24,4 +24,25 @@ public class ProductRepositoryAdapter implements ProductRepository {
         return productR2dbcRepository.save(mapper.toData(product))
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public Mono<Product> findById(Long id) {
+        return productR2dbcRepository.findById(id)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public Mono<Boolean> existsByName(String name) {
+        return productR2dbcRepository.existsByName(name);
+    }
+
+    @Override
+    public Mono<Product> updateName(Long id, String newName) {
+        return productR2dbcRepository.findById(id)
+                .flatMap(data -> {
+                    data.setName(newName);
+                    return productR2dbcRepository.save(data);
+                })
+                .map(mapper::toDomain);
+    }
 }

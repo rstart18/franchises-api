@@ -8,4 +8,10 @@ public interface ProductRepository {
     Mono<Product> findByName(String name);
 
     Mono<Product> save(Product product);
+
+    Mono<Product> findById(Long id);
+
+    Mono<Boolean> existsByName(String name);
+
+    Mono<Product> updateName(Long id, String newName);
 }

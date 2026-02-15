@@ -6,10 +6,12 @@ import co.com.bancolombia.api.dto.BranchRequest;
 import co.com.bancolombia.api.dto.FranchiseRequest;
 import co.com.bancolombia.api.dto.UpdateBranchNameRequest;
 import co.com.bancolombia.api.dto.UpdateFranchiseNameRequest;
+import co.com.bancolombia.api.dto.UpdateProductNameRequest;
 import co.com.bancolombia.api.dto.UpdateStockRequest;
 import co.com.bancolombia.api.mapper.BranchMapper;
 import co.com.bancolombia.api.mapper.BranchProductMapper;
 import co.com.bancolombia.api.mapper.FranchiseMapper;
+import co.com.bancolombia.api.mapper.ProductMapper;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.UpdateFranchiseNameUseCase;
@@ -17,6 +19,7 @@ import co.com.bancolombia.usecase.branch.UpdateBranchNameUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
+import co.com.bancolombia.usecase.product.UpdateProductNameUseCase;
 import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +46,8 @@ public class FranchiseHandler {
     private final GetTopStockProductsUseCase getTopStockProductsUseCase;
     private final UpdateFranchiseNameUseCase updateFranchiseNameUseCase;
     private final UpdateBranchNameUseCase updateBranchNameUseCase;
+    private final UpdateProductNameUseCase updateProductNameUseCase;
+    private final ProductMapper productMapper;
 
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
         return request.bodyToMono(FranchiseRequest.class)
@@ -119,6 +124,17 @@ public class FranchiseHandler {
                 .flatMap(response -> ServerResponse.ok().bodyValue(response))
                 .doOnSuccess(v -> log.info("Branch {} name updated successfully", branchId))
                 .doOnError(e -> log.error("Error updating branch {} name: {}", branchId, e.getMessage()));
+    }
+
+    public Mono<ServerResponse> updateProductName(ServerRequest request) {
+        Long productId = Long.valueOf(request.pathVariable("productId"));
+        return request.bodyToMono(UpdateProductNameRequest.class)
+                .flatMap(validator::validate)
+                .flatMap(req -> updateProductNameUseCase.execute(productId, req.getName()))
+                .map(productMapper::toResponse)
+                .flatMap(response -> ServerResponse.ok().bodyValue(response))
+                .doOnSuccess(v -> log.info("Product {} name updated successfully", productId))
+                .doOnError(e -> log.error("Error updating product {} name: {}", productId, e.getMessage()));
     }
 
     public Mono<ServerResponse> getTopStockProducts(ServerRequest request) {

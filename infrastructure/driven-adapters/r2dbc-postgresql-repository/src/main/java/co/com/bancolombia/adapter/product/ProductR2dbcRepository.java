@@ -8,4 +8,6 @@ import reactor.core.publisher.Mono;
 public interface ProductR2dbcRepository extends ReactiveCrudRepository<ProductData, Long> {
 
     Mono<ProductData> findByName(String name);
+
+    Mono<Boolean> existsByName(String name);
 }

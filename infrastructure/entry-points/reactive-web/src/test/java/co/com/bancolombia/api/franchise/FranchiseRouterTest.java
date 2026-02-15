@@ -4,16 +4,19 @@ import co.com.bancolombia.api.config.RequestValidator;
 import co.com.bancolombia.api.dto.BranchProductResponse;
 import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.FranchiseResponse;
+import co.com.bancolombia.api.dto.ProductResponse;
 import co.com.bancolombia.api.dto.TopStockProductResponse;
 import co.com.bancolombia.api.mapper.BranchMapper;
 import co.com.bancolombia.api.mapper.BranchProductMapper;
 import co.com.bancolombia.api.mapper.FranchiseMapper;
+import co.com.bancolombia.api.mapper.ProductMapper;
 import co.com.bancolombia.model.branch.Branch;
 import co.com.bancolombia.model.branchproduct.BranchProduct;
 import co.com.bancolombia.model.branchproduct.TopStockProduct;
 import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.Franchise;
+import co.com.bancolombia.model.product.Product;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.UpdateFranchiseNameUseCase;
@@ -21,6 +24,7 @@ import co.com.bancolombia.usecase.branch.UpdateBranchNameUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
+import co.com.bancolombia.usecase.product.UpdateProductNameUseCase;
 import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -75,6 +79,12 @@ class FranchiseRouterTest {
     @Mock
     private UpdateBranchNameUseCase updateBranchNameUseCase;
 
+    @Mock
+    private UpdateProductNameUseCase updateProductNameUseCase;
+
+    @Mock
+    private ProductMapper productMapper;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
@@ -85,7 +95,8 @@ class FranchiseRouterTest {
                 createFranchiseUseCase, franchiseMapper, requestValidator,
                 addBranchToFranchiseUseCase, branchMapper, addProductToBranchUseCase,
                 branchProductMapper, removeProductFromBranchUseCase, updateProductStockUseCase,
-                getTopStockProductsUseCase, updateFranchiseNameUseCase, updateBranchNameUseCase);
+                getTopStockProductsUseCase, updateFranchiseNameUseCase, updateBranchNameUseCase,
+                updateProductNameUseCase, productMapper);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
@@ -582,6 +593,70 @@ class FranchiseRouterTest {
     void shouldReturn500WhenBranchNameIsBlankForUpdate() {
         webTestClient.patch()
                 .uri("/api/v1/branches/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/products/{productId} should return 200 with updated product")
+    void shouldReturn200WhenProductNameUpdated() {
+        Long productId = 10L;
+        String newName = "New Laptop Pro";
+        Product updated = new Product(productId, newName);
+        ProductResponse response = new ProductResponse(productId, newName);
+
+        when(updateProductNameUseCase.execute(eq(productId), eq(newName)))
+                .thenReturn(Mono.just(updated));
+        when(productMapper.toResponse(updated)).thenReturn(response);
+
+        webTestClient.patch()
+                .uri("/api/v1/products/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"New Laptop Pro\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(ProductResponse.class)
+                .value(r -> {
+                    assert r.id().equals(productId);
+                    assert r.name().equals(newName);
+                });
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/products/{productId} should propagate error when product not found")
+    void shouldPropagateErrorWhenProductNotFoundForUpdateName() {
+        when(updateProductNameUseCase.execute(eq(999L), eq("New Name")))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.PRODUCT_NOT_FOUND)));
+
+        webTestClient.patch()
+                .uri("/api/v1/products/999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"New Name\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/products/{productId} should propagate error when name already exists")
+    void shouldPropagateErrorWhenProductNameAlreadyExists() {
+        when(updateProductNameUseCase.execute(eq(10L), eq("Existing Product")))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.PRODUCT_NAME_ALREADY_EXISTS)));
+
+        webTestClient.patch()
+                .uri("/api/v1/products/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Existing Product\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/products/{productId} should return 500 when name is blank")
+    void shouldReturn500WhenProductNameIsBlankForUpdate() {
+        webTestClient.patch()
+                .uri("/api/v1/products/10")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{\"name\":\"\"}")
                 .exchange()
