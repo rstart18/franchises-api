@@ -60,3 +60,23 @@ variable "free_tier" {
   type        = bool
   default     = false
 }
+
+# ── ECS / Container ─────────────────────────────────────────────────────────
+
+variable "container_cpu" {
+  description = "CPU units for ECS task (256 = 0.25 vCPU)"
+  type        = number
+  default     = 256
+}
+
+variable "container_memory" {
+  description = "Memory in MiB for ECS task"
+  type        = number
+  default     = 512
+}
+
+variable "app_desired_count" {
+  description = "Number of ECS tasks to run"
+  type        = number
+  default     = 1
+}

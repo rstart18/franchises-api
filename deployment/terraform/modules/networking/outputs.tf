@@ -12,3 +12,8 @@ output "db_security_group_id" {
   description = "Security group ID for RDS"
   value       = aws_security_group.db.id
 }
+
+output "public_subnet_ids" {
+  description = "List of public subnet IDs"
+  value       = aws_subnet.public[*].id
+}
