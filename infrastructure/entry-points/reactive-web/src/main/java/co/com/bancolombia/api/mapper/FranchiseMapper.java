@@ -1,4 +1,4 @@
-package co.com.bancolombia.api.franchise;
+package co.com.bancolombia.api.mapper;
 
 import co.com.bancolombia.api.dto.FranchiseRequest;
 import co.com.bancolombia.api.dto.FranchiseResponse;

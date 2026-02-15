@@ -30,4 +30,17 @@ public class BranchProductRepositoryAdapter implements BranchProductRepository {
                         .map(productData -> mapper.toDomain(data, productData.getName()))
                 );
     }
+
+    @Override
+    public Mono<Void> softDelete(Long branchId, Long productId) {
+        return branchProductR2dbcRepository.softDelete(branchId, productId);
+    }
+
+    @Override
+    public Mono<BranchProduct> findActiveByBranchAndProduct(Long branchId, Long productId) {
+        return branchProductR2dbcRepository.findActiveByBranchAndProduct(branchId, productId)
+                .flatMap(data -> productR2dbcRepository.findById(data.getProductId())
+                        .map(productData -> mapper.toDomain(data, productData.getName()))
+                );
+    }
 }

@@ -8,4 +8,8 @@ public interface BranchProductRepository {
     Mono<BranchProduct> save(BranchProduct branchProduct);
 
     Mono<BranchProduct> findByBranchAndProduct(Long branchId, Long productId);
+
+    Mono<Void> softDelete(Long branchId, Long productId);
+
+    Mono<BranchProduct> findActiveByBranchAndProduct(Long branchId, Long productId);
 }

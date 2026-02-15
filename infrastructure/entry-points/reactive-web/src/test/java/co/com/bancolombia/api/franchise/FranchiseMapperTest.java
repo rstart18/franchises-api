@@ -2,6 +2,7 @@ package co.com.bancolombia.api.franchise;
 
 import co.com.bancolombia.api.dto.FranchiseRequest;
 import co.com.bancolombia.api.dto.FranchiseResponse;
+import co.com.bancolombia.api.mapper.FranchiseMapper;
 import co.com.bancolombia.model.franchise.Franchise;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

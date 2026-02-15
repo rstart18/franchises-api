@@ -4,6 +4,9 @@ import co.com.bancolombia.api.config.RequestValidator;
 import co.com.bancolombia.api.dto.BranchProductResponse;
 import co.com.bancolombia.api.dto.BranchResponse;
 import co.com.bancolombia.api.dto.FranchiseResponse;
+import co.com.bancolombia.api.mapper.BranchMapper;
+import co.com.bancolombia.api.mapper.BranchProductMapper;
+import co.com.bancolombia.api.mapper.FranchiseMapper;
 import co.com.bancolombia.model.branch.Branch;
 import co.com.bancolombia.model.branchproduct.BranchProduct;
 import co.com.bancolombia.model.exception.BusinessException;
@@ -12,6 +15,7 @@ import co.com.bancolombia.model.franchise.Franchise;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
+import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +53,9 @@ class FranchiseRouterTest {
     @Mock
     private BranchProductMapper branchProductMapper;
 
+    @Mock
+    private RemoveProductFromBranchUseCase removeProductFromBranchUseCase;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
@@ -58,7 +65,7 @@ class FranchiseRouterTest {
         FranchiseHandler franchiseHandler = new FranchiseHandler(
                 createFranchiseUseCase, franchiseMapper, requestValidator,
                 addBranchToFranchiseUseCase, branchMapper, addProductToBranchUseCase,
-                branchProductMapper);
+                branchProductMapper, removeProductFromBranchUseCase);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
@@ -261,5 +268,44 @@ class FranchiseRouterTest {
                     assert r.productId().equals(10L);
                     assert r.stock().equals(30);
                 });
+    }
+
+    @Test
+    @DisplayName("DELETE /api/v1/branches/{branchId}/products/{productId} should return 204 when product removed")
+    void shouldReturn204WhenProductRemovedFromBranch() {
+        Long branchId = 1L;
+        Long productId = 10L;
+
+        when(removeProductFromBranchUseCase.execute(eq(branchId), eq(productId)))
+                .thenReturn(Mono.empty());
+
+        webTestClient.delete()
+                .uri("/api/v1/branches/1/products/10")
+                .exchange()
+                .expectStatus().isNoContent();
+    }
+
+    @Test
+    @DisplayName("DELETE /api/v1/branches/{branchId}/products/{productId} should propagate error when branch not found")
+    void shouldPropagateErrorWhenBranchNotFoundForRemoveProduct() {
+        when(removeProductFromBranchUseCase.execute(eq(99L), eq(10L)))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.BRANCH_NOT_FOUND)));
+
+        webTestClient.delete()
+                .uri("/api/v1/branches/99/products/10")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("DELETE /api/v1/branches/{branchId}/products/{productId} should propagate error when product not associated")
+    void shouldPropagateErrorWhenProductNotAssociatedForRemove() {
+        when(removeProductFromBranchUseCase.execute(eq(1L), eq(99L)))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.BRANCH_PRODUCT_NOT_FOUND)));
+
+        webTestClient.delete()
+                .uri("/api/v1/branches/1/products/99")
+                .exchange()
+                .expectStatus().is5xxServerError();
     }
 }

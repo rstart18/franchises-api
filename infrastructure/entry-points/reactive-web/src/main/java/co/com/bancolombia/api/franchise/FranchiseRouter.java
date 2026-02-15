@@ -126,6 +126,39 @@ public class FranchiseRouter {
                                             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/branches/{branchId}/products/{productId}",
+                    method = RequestMethod.DELETE,
+                    beanClass = FranchiseHandler.class,
+                    beanMethod = "removeProduct",
+                    operation = @Operation(
+                            operationId = "removeProductFromBranch",
+                            summary = "Remove a product from a branch",
+                            description = "Performs a soft delete of the product-branch association. The product itself is not deleted.",
+                            tags = {"Branches"},
+                            parameters = {
+                                    @Parameter(
+                                            name = "branchId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the branch",
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    ),
+                                    @Parameter(
+                                            name = "productId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the product",
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    )
+                            },
+                            responses = {
+                                    @ApiResponse(responseCode = "204", description = "Product removed from branch successfully"),
+                                    @ApiResponse(responseCode = "404", description = "Branch or product association not found",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+                            }
+                    )
             )
     })
     @Bean
@@ -135,7 +168,8 @@ public class FranchiseRouter {
                         .POST("", handler::createFranchise)
                         .POST("/{franchiseId}/branches", handler::addBranch))
                 .path("/api/v1/branches", builder -> builder
-                        .POST("/{branchId}/products", handler::addProduct))
+                        .POST("/{branchId}/products", handler::addProduct)
+                        .DELETE("/{branchId}/products/{productId}", handler::removeProduct))
                 .build();
     }
 }

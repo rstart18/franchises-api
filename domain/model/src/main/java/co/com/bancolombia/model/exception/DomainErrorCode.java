@@ -15,7 +15,8 @@ public enum DomainErrorCode {
     PRODUCT_NAME_REQUIRED(400, "Product name is required"),
     PRODUCT_STOCK_INVALID(400, "Product stock must be zero or greater"),
     PRODUCT_NAME_ALREADY_EXISTS(409, "A product with that name already exists"),
-    PRODUCT_NOT_FOUND(404, "Product not found");
+    PRODUCT_NOT_FOUND(404, "Product not found"),
+    BRANCH_PRODUCT_NOT_FOUND(404, "Product is not associated with this branch");
 
     private final int statusCode;
     private final String defaultMessage;

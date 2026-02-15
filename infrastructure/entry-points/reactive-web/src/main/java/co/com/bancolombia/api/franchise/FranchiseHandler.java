@@ -2,12 +2,15 @@ package co.com.bancolombia.api.franchise;
 
 import co.com.bancolombia.api.config.RequestValidator;
 import co.com.bancolombia.api.dto.AddProductToBranchRequest;
-import co.com.bancolombia.api.dto.BranchProductResponse;
 import co.com.bancolombia.api.dto.BranchRequest;
 import co.com.bancolombia.api.dto.FranchiseRequest;
+import co.com.bancolombia.api.mapper.BranchMapper;
+import co.com.bancolombia.api.mapper.BranchProductMapper;
+import co.com.bancolombia.api.mapper.FranchiseMapper;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
+import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,6 +31,7 @@ public class FranchiseHandler {
     private final BranchMapper branchMapper;
     private final AddProductToBranchUseCase addProductToBranchUseCase;
     private final BranchProductMapper branchProductMapper;
+    private final RemoveProductFromBranchUseCase removeProductFromBranchUseCase;
 
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
         return request.bodyToMono(FranchiseRequest.class)
@@ -61,5 +65,14 @@ public class FranchiseHandler {
                 .flatMap(response -> ServerResponse.status(HttpStatus.CREATED).bodyValue(response))
                 .doOnSuccess(v -> log.info("Product added to branch {} successfully", branchId))
                 .doOnError(e -> log.error("Error adding product to branch {}: {}", branchId, e.getMessage()));
+    }
+
+    public Mono<ServerResponse> removeProduct(ServerRequest request) {
+        Long branchId = Long.valueOf(request.pathVariable("branchId"));
+        Long productId = Long.valueOf(request.pathVariable("productId"));
+        return removeProductFromBranchUseCase.execute(branchId, productId)
+                .then(ServerResponse.noContent().build())
+                .doOnSuccess(v -> log.info("Product {} removed from branch {} successfully", productId, branchId))
+                .doOnError(e -> log.error("Error removing product {} from branch {}: {}", productId, branchId, e.getMessage()));
     }
 }

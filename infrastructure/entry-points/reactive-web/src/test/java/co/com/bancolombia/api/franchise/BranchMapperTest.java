@@ -2,6 +2,7 @@ package co.com.bancolombia.api.franchise;
 
 import co.com.bancolombia.api.dto.BranchRequest;
 import co.com.bancolombia.api.dto.BranchResponse;
+import co.com.bancolombia.api.mapper.BranchMapper;
 import co.com.bancolombia.model.branch.Branch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
