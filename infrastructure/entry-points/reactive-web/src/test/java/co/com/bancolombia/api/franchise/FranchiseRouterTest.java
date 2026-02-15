@@ -16,6 +16,7 @@ import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.Franchise;
 import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
 import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
+import co.com.bancolombia.usecase.franchise.UpdateFranchiseNameUseCase;
 import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
 import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
@@ -67,6 +68,9 @@ class FranchiseRouterTest {
     @Mock
     private GetTopStockProductsUseCase getTopStockProductsUseCase;
 
+    @Mock
+    private UpdateFranchiseNameUseCase updateFranchiseNameUseCase;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
@@ -77,7 +81,7 @@ class FranchiseRouterTest {
                 createFranchiseUseCase, franchiseMapper, requestValidator,
                 addBranchToFranchiseUseCase, branchMapper, addProductToBranchUseCase,
                 branchProductMapper, removeProductFromBranchUseCase, updateProductStockUseCase,
-                getTopStockProductsUseCase);
+                getTopStockProductsUseCase, updateFranchiseNameUseCase);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
@@ -448,6 +452,70 @@ class FranchiseRouterTest {
 
         webTestClient.get()
                 .uri("/api/v1/franchises/999/products/top-stock")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/franchises/{franchiseId} should return 200 with updated franchise")
+    void shouldReturn200WhenFranchiseNameUpdated() {
+        Long franchiseId = 1L;
+        String newName = "New Burger Kingdom";
+        Franchise updated = Franchise.builder().id(franchiseId).name(newName).build();
+        FranchiseResponse response = new FranchiseResponse(franchiseId, newName);
+
+        when(updateFranchiseNameUseCase.execute(eq(franchiseId), eq(newName)))
+                .thenReturn(Mono.just(updated));
+        when(franchiseMapper.toResponse(updated)).thenReturn(response);
+
+        webTestClient.patch()
+                .uri("/api/v1/franchises/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"New Burger Kingdom\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(FranchiseResponse.class)
+                .value(r -> {
+                    assert r.id().equals(franchiseId);
+                    assert r.name().equals(newName);
+                });
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/franchises/{franchiseId} should propagate error when franchise not found")
+    void shouldPropagateErrorWhenFranchiseNotFoundForUpdateName() {
+        when(updateFranchiseNameUseCase.execute(eq(999L), eq("New Name")))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.FRANCHISE_NOT_FOUND)));
+
+        webTestClient.patch()
+                .uri("/api/v1/franchises/999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"New Name\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/franchises/{franchiseId} should propagate error when name already exists")
+    void shouldPropagateErrorWhenNameAlreadyExistsForUpdateName() {
+        when(updateFranchiseNameUseCase.execute(eq(1L), eq("Existing Name")))
+                .thenReturn(Mono.error(new BusinessException(DomainErrorCode.FRANCHISE_NAME_ALREADY_EXISTS)));
+
+        webTestClient.patch()
+                .uri("/api/v1/franchises/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Existing Name\"}")
+                .exchange()
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/franchises/{franchiseId} should return 500 when name is blank")
+    void shouldReturn500WhenFranchiseNameIsBlankForUpdate() {
+        webTestClient.patch()
+                .uri("/api/v1/franchises/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"\"}")
                 .exchange()
                 .expectStatus().is5xxServerError();
     }

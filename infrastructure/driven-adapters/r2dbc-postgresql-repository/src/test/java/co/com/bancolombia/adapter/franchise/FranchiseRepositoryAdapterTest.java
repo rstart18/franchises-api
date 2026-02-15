@@ -93,4 +93,33 @@ class FranchiseRepositoryAdapterTest {
         StepVerifier.create(adapter.findById(99L))
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("Should update franchise name and return domain object")
+    void shouldUpdateFranchiseName() {
+        Long id = 1L;
+        String newName = "New Burger Kingdom";
+        FranchiseData existingData = FranchiseData.builder().id(id).name("Burger Kingdom").build();
+        FranchiseData savedData = FranchiseData.builder().id(id).name(newName).build();
+        Franchise domainResult = Franchise.builder().id(id).name(newName).build();
+
+        when(franchiseR2dbcRepository.findById(id)).thenReturn(Mono.just(existingData));
+        when(franchiseR2dbcRepository.save(existingData)).thenReturn(Mono.just(savedData));
+        when(mapper.toDomain(savedData)).thenReturn(domainResult);
+
+        StepVerifier.create(adapter.updateName(id, newName))
+                .expectNextMatches(result ->
+                        result.getId().equals(id) &&
+                        result.getName().equals(newName))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should return empty when updating name of non-existent franchise")
+    void shouldReturnEmptyWhenUpdatingNameOfNonExistentFranchise() {
+        when(franchiseR2dbcRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(adapter.updateName(99L, "New Name"))
+                .verifyComplete();
+    }
 }

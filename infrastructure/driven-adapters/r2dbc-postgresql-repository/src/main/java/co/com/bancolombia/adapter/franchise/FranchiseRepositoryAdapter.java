@@ -29,4 +29,14 @@ public class FranchiseRepositoryAdapter implements FranchiseRepository {
         return franchiseR2dbcRepository.findById(id)
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public Mono<Franchise> updateName(Long id, String newName) {
+        return franchiseR2dbcRepository.findById(id)
+                .flatMap(data -> {
+                    data.setName(newName);
+                    return franchiseR2dbcRepository.save(data);
+                })
+                .map(mapper::toDomain);
+    }
 }
