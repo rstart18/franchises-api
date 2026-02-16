@@ -65,6 +65,8 @@ class ConfigTest {
     private UpdateProductNameUseCase updateProductNameUseCase;
     @MockitoBean
     private ProductMapper productMapper;
+    @MockitoBean
+    private HandlerLogger handlerLogger;
 
     @Test
     void securityHeadersShouldBePresent() {

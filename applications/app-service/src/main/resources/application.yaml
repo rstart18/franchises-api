@@ -5,6 +5,8 @@ spring:
     name: "FranchisesApi"
   devtools:
     add-properties: false
+  reactor:
+    context-propagation: auto
   profiles:
     include: null
   r2dbc:
@@ -35,6 +37,14 @@ management:
     health:
       probes:
         enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+    baggage:
+      correlation:
+        fields:
+          - "messageId"
+      remote-fields: "messageId"
 
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
@@ -50,3 +60,33 @@ springdoc:
 notification:
   service:
     base-url: ${NOTIFICATION_URL:http://localhost:8081}
+
+resilience4j.circuitbreaker:
+  circuit-breaker-aspect-order: 1
+  configs:
+    default:
+      register-health-indicator: true
+  instances:
+    notificationService:
+      base-config: "default"
+      failure-rate-threshold: "${NOTIFICATION_FAILURE_RATE_THRESHOLD:50}"
+      slow-call-rate-threshold: "${NOTIFICATION_SLOW_CALL_RATE_THRESHOLD:50}"
+      slow-call-duration-threshold: "${NOTIFICATION_SLOW_CALL_DURATION_THRESHOLD:2s}"
+      sliding-window-type: "${NOTIFICATION_SLIDING_WINDOW_TYPE:COUNT_BASED}"
+      sliding-window-size: "${NOTIFICATION_SLIDING_WINDOW_SIZE:10}"
+      minimum-number-of-calls: "${NOTIFICATION_MIN_NUMBER_CALLS:5}"
+      wait-duration-in-open-state: "${NOTIFICATION_WAIT_DURATION_OPEN_STATE:30s}"
+      max-wait-duration-in-half-open-state: "${NOTIFICATION_MAX_WAIT_DURATION_HALF_OPEN_STATE:10s}"
+      permitted-number-of-calls-in-half-open-state: "${NOTIFICATION_PERMITTED_CALLS_HALF_OPEN_STATE:3}"
+      automatic-transition-from-open-to-half-open-enabled: "${NOTIFICATION_AUTO_TRANS_OPEN_TO_HALF_OPEN:false}"
+
+resilience4j.retry:
+  configs:
+    default:
+      max-attempts: 3
+      wait-duration: 500ms
+      enable-exponential-backoff: true
+      exponential-backoff-multiplier: 2
+  instances:
+    notificationService:
+      base-config: "default"

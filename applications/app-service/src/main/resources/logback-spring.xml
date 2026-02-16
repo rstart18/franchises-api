@@ -1,0 +1,24 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <appender name="default" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId:-}] %-5p --- [%15.15t] %-30.30logger{39} :  %m%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <jsonGeneratorDecorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
+                <defaultMask>****</defaultMask>
+                <path>password</path>
+                <path>otp</path>
+                <path>rate</path>
+                <path>amount</path>
+                <path>originAmount</path>
+                <path>destinationAmount</path>
+            </jsonGeneratorDecorator>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="default"/>
+    </root>
+</configuration>

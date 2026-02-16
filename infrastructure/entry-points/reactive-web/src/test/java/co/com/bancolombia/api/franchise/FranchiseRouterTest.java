@@ -28,6 +28,7 @@ import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
 import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
 import co.com.bancolombia.usecase.product.UpdateProductNameUseCase;
 import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
+import co.com.bancolombia.api.config.HandlerLogger;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,6 +88,9 @@ class FranchiseRouterTest {
     @Mock
     private ProductMapper productMapper;
 
+    @Mock
+    private HandlerLogger handlerLogger;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
@@ -98,7 +102,7 @@ class FranchiseRouterTest {
                 addBranchToFranchiseUseCase, branchMapper, addProductToBranchUseCase,
                 branchProductMapper, removeProductFromBranchUseCase, updateProductStockUseCase,
                 getTopStockProductsUseCase, updateFranchiseNameUseCase, updateBranchNameUseCase,
-                updateProductNameUseCase, productMapper);
+                updateProductNameUseCase, productMapper, handlerLogger);
         FranchiseRouter franchiseRouter = new FranchiseRouter();
 
         webTestClient = WebTestClient.bindToRouterFunction(franchiseRouter.franchiseRoutes(franchiseHandler))
