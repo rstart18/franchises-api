@@ -241,6 +241,20 @@ Y luego
 
 ## Tests y Cobertura de Código
 
+### Generar reporte global de cobertura
+
+```bash
+./gradlew jacocoMergedReport
+```
+
+Genera un reporte consolidado que combina la cobertura de todos los módulos en:
+
+```
+build/reports/jacocoMergedReport/html/index.html
+```
+
+---
+
 ### Ejecutar tests y generar reporte Jacoco
 
 ```bash
@@ -266,8 +280,6 @@ Este comando ejecuta los tests, genera el reporte Jacoco y falla si la cobertura
 ```bash
 ./gradlew build
 ```
-
----
 
 ## Tecnologías
 
