@@ -1,0 +1,349 @@
+{
+  "info": {
+    "_postman_id": "9374c8de-1818-4365-9a59-11f3438c1237",
+    "name": "Reto Nequi",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "51524067",
+    "_collection_link": "https://go.postman.co/collection/51524067-9374c8de-1818-4365-9a59-11f3438c1237?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Health Check Copy",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/actuator/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "actuator",
+            "health"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": null,
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Top Stock to Franchise Copy",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/:franchiseId/products/top-stock",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            ":franchiseId",
+            "products",
+            "top-stock"
+          ],
+          "variable": [
+            {
+              "key": "franchiseId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Change Product Name Copy",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"name\": \"Portatil\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/:productId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "products",
+            ":productId"
+          ],
+          "variable": [
+            {
+              "key": "productId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Change Branch Name Copy",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"name\": \"Esquina redonda\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/branches/:branchId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "branches",
+            ":branchId"
+          ],
+          "variable": [
+            {
+              "key": "branchId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Change Franchise Name Copy",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"name\": \"CompuMax\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/:franchiseId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            ":franchiseId"
+          ],
+          "variable": [
+            {
+              "key": "franchiseId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Modify Stock to Product",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"stock\": 4\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/branches/:branchId/products/:productId/stock",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "branches",
+            ":branchId",
+            "products",
+            ":productId",
+            "stock"
+          ],
+          "variable": [
+            {
+              "key": "branchId",
+              "value": "1"
+            },
+            {
+              "key": "productId",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Branch Product Relationship Copy",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/branches/:branchId/products/:productId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "branches",
+            ":branchId",
+            "products",
+            ":productId"
+          ],
+          "variable": [
+            {
+              "key": "branchId",
+              "value": "1"
+            },
+            {
+              "key": "productId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Add Product to Branch",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"name\": \"Nintendo 64\",\r\n\t\"stock\": 20\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/branches/:branchId/products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "branches",
+            ":branchId",
+            "products"
+          ],
+          "variable": [
+            {
+              "key": "branchId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Add Branch to Franchise",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"name\": \"Branch 4\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/:franchiseId/branches",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            ":franchiseId",
+            "branches"
+          ],
+          "variable": [
+            {
+              "key": "franchiseId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Franchise",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"name\": \"Franchise Example 12\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://whlrnmjf5i.execute-api.us-east-1.amazonaws.com/api/v1/franchises",
+          "protocol": "https",
+          "host": [
+            "whlrnmjf5i",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
