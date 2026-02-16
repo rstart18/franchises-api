@@ -1,8 +1,5 @@
 package co.com.bancolombia.usecase.product;
 
-import co.com.bancolombia.model.branch.Branch;
-import co.com.bancolombia.model.branch.gateway.BranchRepository;
-import co.com.bancolombia.model.branchproduct.BranchProduct;
 import co.com.bancolombia.model.branchproduct.TopStockProduct;
 import co.com.bancolombia.model.branchproduct.gateway.BranchProductRepository;
 import co.com.bancolombia.model.exception.BusinessException;
@@ -31,16 +28,13 @@ class GetTopStockProductsUseCaseTest {
     private FranchiseRepository franchiseRepository;
 
     @Mock
-    private BranchRepository branchRepository;
-
-    @Mock
     private BranchProductRepository branchProductRepository;
 
     private GetTopStockProductsUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetTopStockProductsUseCase(franchiseRepository, branchRepository, branchProductRepository);
+        useCase = new GetTopStockProductsUseCase(franchiseRepository, branchProductRepository);
     }
 
     @Test
@@ -48,15 +42,11 @@ class GetTopStockProductsUseCaseTest {
     void shouldReturnTopStockProductsForFranchise() {
         Long franchiseId = 1L;
         Franchise franchise = Franchise.builder().id(franchiseId).name("Burger Kingdom").build();
-        Branch branch1 = new Branch(10L, "North Branch");
-        Branch branch2 = new Branch(20L, "South Branch");
-        BranchProduct bp1 = new BranchProduct(100L, 10L, "Laptop", 150);
-        BranchProduct bp2 = new BranchProduct(200L, 20L, "Phone", 80);
+        TopStockProduct tp1 = new TopStockProduct(100L, "Laptop", 150, 10L, "North Branch");
+        TopStockProduct tp2 = new TopStockProduct(200L, "Phone", 80, 20L, "South Branch");
 
         when(franchiseRepository.findById(franchiseId)).thenReturn(Mono.just(franchise));
-        when(branchRepository.findAllByFranchiseId(franchiseId)).thenReturn(Flux.just(branch1, branch2));
-        when(branchProductRepository.findTopStockByBranch(10L)).thenReturn(Mono.just(bp1));
-        when(branchProductRepository.findTopStockByBranch(20L)).thenReturn(Mono.just(bp2));
+        when(branchProductRepository.findTopStockByFranchise(franchiseId)).thenReturn(Flux.just(tp1, tp2));
 
         StepVerifier.create(useCase.execute(franchiseId))
                 .expectNextMatches(tp -> tp.productId().equals(100L) &&
@@ -73,33 +63,13 @@ class GetTopStockProductsUseCaseTest {
     }
 
     @Test
-    @DisplayName("Should skip branches without products")
-    void shouldSkipBranchesWithoutProducts() {
-        Long franchiseId = 1L;
-        Franchise franchise = Franchise.builder().id(franchiseId).name("Burger Kingdom").build();
-        Branch branch1 = new Branch(10L, "North Branch");
-        Branch branch2 = new Branch(20L, "Empty Branch");
-        BranchProduct bp1 = new BranchProduct(100L, 10L, "Laptop", 150);
-
-        when(franchiseRepository.findById(franchiseId)).thenReturn(Mono.just(franchise));
-        when(branchRepository.findAllByFranchiseId(franchiseId)).thenReturn(Flux.just(branch1, branch2));
-        when(branchProductRepository.findTopStockByBranch(10L)).thenReturn(Mono.just(bp1));
-        when(branchProductRepository.findTopStockByBranch(20L)).thenReturn(Mono.empty());
-
-        StepVerifier.create(useCase.execute(franchiseId))
-                .expectNextMatches(tp -> tp.productId().equals(100L) &&
-                        tp.branchId().equals(10L))
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should return empty flux when franchise has no branches")
-    void shouldReturnEmptyWhenNoBranches() {
+    @DisplayName("Should return empty flux when franchise has no branches with products")
+    void shouldReturnEmptyWhenNoBranchesWithProducts() {
         Long franchiseId = 1L;
         Franchise franchise = Franchise.builder().id(franchiseId).name("Burger Kingdom").build();
 
         when(franchiseRepository.findById(franchiseId)).thenReturn(Mono.just(franchise));
-        when(branchRepository.findAllByFranchiseId(franchiseId)).thenReturn(Flux.empty());
+        when(branchProductRepository.findTopStockByFranchise(franchiseId)).thenReturn(Flux.empty());
 
         StepVerifier.create(useCase.execute(franchiseId))
                 .verifyComplete();
@@ -117,6 +87,6 @@ class GetTopStockProductsUseCaseTest {
                         ((BusinessException) error).getErrorCode() == DomainErrorCode.FRANCHISE_NOT_FOUND)
                 .verify();
 
-        verify(branchRepository, never()).findAllByFranchiseId(anyLong());
+        verify(branchProductRepository, never()).findTopStockByFranchise(anyLong());
     }
 }

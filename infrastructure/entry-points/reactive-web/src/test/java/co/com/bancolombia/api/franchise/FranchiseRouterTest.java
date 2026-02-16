@@ -1,5 +1,7 @@
 package co.com.bancolombia.api.franchise;
 
+import co.com.bancolombia.api.FranchiseHandler;
+import co.com.bancolombia.api.FranchiseRouter;
 import co.com.bancolombia.api.config.RequestValidator;
 import co.com.bancolombia.api.dto.BranchProductResponse;
 import co.com.bancolombia.api.dto.BranchResponse;

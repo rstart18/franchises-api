@@ -2,9 +2,11 @@ package co.com.bancolombia.adapter.branchproduct;
 
 import co.com.bancolombia.adapter.product.ProductR2dbcRepository;
 import co.com.bancolombia.model.branchproduct.BranchProduct;
+import co.com.bancolombia.model.branchproduct.TopStockProduct;
 import co.com.bancolombia.model.branchproduct.gateway.BranchProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -57,10 +59,8 @@ public class BranchProductRepositoryAdapter implements BranchProductRepository {
     }
 
     @Override
-    public Mono<BranchProduct> findTopStockByBranch(Long branchId) {
-        return branchProductR2dbcRepository.findTopStockByBranch(branchId)
-                .flatMap(data -> productR2dbcRepository.findById(data.getProductId())
-                        .map(productData -> mapper.toDomain(data, productData.getName()))
-                );
+    public Flux<TopStockProduct> findTopStockByFranchise(Long franchiseId) {
+        return branchProductR2dbcRepository.findTopStockByFranchise(franchiseId)
+                .map(mapper::toDomain);
     }
 }

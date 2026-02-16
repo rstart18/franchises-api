@@ -99,6 +99,7 @@ subprojects {
                     'co.com.bancolombia.api.dto.*',
                     'co.com.bancolombia.adapter.*.data.*',
                     'co.com.bancolombia.adapter.*.*Data',
+                    'co.com.bancolombia.adapter.*.*Projection',
                     'co.com.bancolombia.adapter.*Mapper*',
                     'co.com.bancolombia.adapter.franchise.FranchiseDataMapperImpl',
                     'co.com.bancolombia.api.franchise.*Mapper*',

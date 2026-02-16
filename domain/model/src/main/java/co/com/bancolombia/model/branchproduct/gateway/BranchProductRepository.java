@@ -1,6 +1,8 @@
 package co.com.bancolombia.model.branchproduct.gateway;
 
 import co.com.bancolombia.model.branchproduct.BranchProduct;
+import co.com.bancolombia.model.branchproduct.TopStockProduct;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface BranchProductRepository {
@@ -15,5 +17,5 @@ public interface BranchProductRepository {
 
     Mono<BranchProduct> updateStock(Long branchId, Long productId, Integer stock);
 
-    Mono<BranchProduct> findTopStockByBranch(Long branchId);
+    Flux<TopStockProduct> findTopStockByFranchise(Long franchiseId);
 }

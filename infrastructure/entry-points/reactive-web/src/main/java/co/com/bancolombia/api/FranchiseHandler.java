@@ -1,4 +1,4 @@
-package co.com.bancolombia.api.franchise;
+package co.com.bancolombia.api;
 
 import co.com.bancolombia.api.config.RequestValidator;
 import co.com.bancolombia.api.dto.AddProductToBranchRequest;
