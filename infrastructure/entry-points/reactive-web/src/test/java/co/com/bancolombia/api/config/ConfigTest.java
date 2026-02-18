@@ -6,15 +6,15 @@ import co.com.bancolombia.api.mapper.BranchMapper;
 import co.com.bancolombia.api.mapper.BranchProductMapper;
 import co.com.bancolombia.api.mapper.FranchiseMapper;
 import co.com.bancolombia.api.mapper.ProductMapper;
-import co.com.bancolombia.usecase.branch.UpdateBranchNameUseCase;
-import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
-import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
-import co.com.bancolombia.usecase.franchise.UpdateFranchiseNameUseCase;
-import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
-import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
-import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
-import co.com.bancolombia.usecase.product.UpdateProductNameUseCase;
-import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
+import co.com.bancolombia.model.usecase.AddBranchToFranchisePort;
+import co.com.bancolombia.model.usecase.AddProductToBranchPort;
+import co.com.bancolombia.model.usecase.CreateFranchisePort;
+import co.com.bancolombia.model.usecase.GetTopStockProductsPort;
+import co.com.bancolombia.model.usecase.RemoveProductFromBranchPort;
+import co.com.bancolombia.model.usecase.UpdateBranchNamePort;
+import co.com.bancolombia.model.usecase.UpdateFranchiseNamePort;
+import co.com.bancolombia.model.usecase.UpdateProductNamePort;
+import co.com.bancolombia.model.usecase.UpdateProductStockPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
@@ -38,31 +38,31 @@ class ConfigTest {
     private WebTestClient webTestClient;
 
     @MockitoBean
-    private CreateFranchiseUseCase createFranchiseUseCase;
+    private CreateFranchisePort createFranchiseUseCase;
     @MockitoBean
     private FranchiseMapper franchiseMapper;
     @MockitoBean
     private RequestValidator requestValidator;
     @MockitoBean
-    private AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
+    private AddBranchToFranchisePort addBranchToFranchiseUseCase;
     @MockitoBean
     private BranchMapper branchMapper;
     @MockitoBean
-    private AddProductToBranchUseCase addProductToBranchUseCase;
+    private AddProductToBranchPort addProductToBranchUseCase;
     @MockitoBean
     private BranchProductMapper branchProductMapper;
     @MockitoBean
-    private RemoveProductFromBranchUseCase removeProductFromBranchUseCase;
+    private RemoveProductFromBranchPort removeProductFromBranchUseCase;
     @MockitoBean
-    private UpdateProductStockUseCase updateProductStockUseCase;
+    private UpdateProductStockPort updateProductStockUseCase;
     @MockitoBean
-    private GetTopStockProductsUseCase getTopStockProductsUseCase;
+    private GetTopStockProductsPort getTopStockProductsUseCase;
     @MockitoBean
-    private UpdateFranchiseNameUseCase updateFranchiseNameUseCase;
+    private UpdateFranchiseNamePort updateFranchiseNameUseCase;
     @MockitoBean
-    private UpdateBranchNameUseCase updateBranchNameUseCase;
+    private UpdateBranchNamePort updateBranchNameUseCase;
     @MockitoBean
-    private UpdateProductNameUseCase updateProductNameUseCase;
+    private UpdateProductNamePort updateProductNameUseCase;
     @MockitoBean
     private ProductMapper productMapper;
     @MockitoBean

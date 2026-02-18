@@ -7,16 +7,18 @@ import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.product.Product;
 import co.com.bancolombia.model.product.gateway.ProductRepository;
+import co.com.bancolombia.model.usecase.AddProductToBranchPort;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class AddProductToBranchUseCase {
+public class AddProductToBranchUseCase extends AddProductToBranchPort {
 
     private final BranchRepository branchRepository;
     private final ProductRepository productRepository;
     private final BranchProductRepository branchProductRepository;
 
+    @Override
     public Mono<BranchProduct> execute(Long branchId, String productName, Integer stock) {
         return Mono.justOrEmpty(productName)
                 .filter(name -> !name.isBlank())

@@ -19,15 +19,15 @@ import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.Franchise;
 import co.com.bancolombia.model.product.Product;
-import co.com.bancolombia.usecase.franchise.AddBranchToFranchiseUseCase;
-import co.com.bancolombia.usecase.franchise.CreateFranchiseUseCase;
-import co.com.bancolombia.usecase.franchise.UpdateFranchiseNameUseCase;
-import co.com.bancolombia.usecase.branch.UpdateBranchNameUseCase;
-import co.com.bancolombia.usecase.product.AddProductToBranchUseCase;
-import co.com.bancolombia.usecase.product.GetTopStockProductsUseCase;
-import co.com.bancolombia.usecase.product.RemoveProductFromBranchUseCase;
-import co.com.bancolombia.usecase.product.UpdateProductNameUseCase;
-import co.com.bancolombia.usecase.product.UpdateProductStockUseCase;
+import co.com.bancolombia.model.usecase.AddBranchToFranchisePort;
+import co.com.bancolombia.model.usecase.AddProductToBranchPort;
+import co.com.bancolombia.model.usecase.CreateFranchisePort;
+import co.com.bancolombia.model.usecase.GetTopStockProductsPort;
+import co.com.bancolombia.model.usecase.RemoveProductFromBranchPort;
+import co.com.bancolombia.model.usecase.UpdateBranchNamePort;
+import co.com.bancolombia.model.usecase.UpdateFranchiseNamePort;
+import co.com.bancolombia.model.usecase.UpdateProductNamePort;
+import co.com.bancolombia.model.usecase.UpdateProductStockPort;
 import co.com.bancolombia.api.config.HandlerLogger;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -50,40 +50,40 @@ import static org.mockito.Mockito.when;
 class FranchiseRouterTest {
 
     @Mock
-    private CreateFranchiseUseCase createFranchiseUseCase;
+    private CreateFranchisePort createFranchiseUseCase;
 
     @Mock
     private FranchiseMapper franchiseMapper;
 
     @Mock
-    private AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
+    private AddBranchToFranchisePort addBranchToFranchiseUseCase;
 
     @Mock
     private BranchMapper branchMapper;
 
     @Mock
-    private AddProductToBranchUseCase addProductToBranchUseCase;
+    private AddProductToBranchPort addProductToBranchUseCase;
 
     @Mock
     private BranchProductMapper branchProductMapper;
 
     @Mock
-    private RemoveProductFromBranchUseCase removeProductFromBranchUseCase;
+    private RemoveProductFromBranchPort removeProductFromBranchUseCase;
 
     @Mock
-    private UpdateProductStockUseCase updateProductStockUseCase;
+    private UpdateProductStockPort updateProductStockUseCase;
 
     @Mock
-    private GetTopStockProductsUseCase getTopStockProductsUseCase;
+    private GetTopStockProductsPort getTopStockProductsUseCase;
 
     @Mock
-    private UpdateFranchiseNameUseCase updateFranchiseNameUseCase;
+    private UpdateFranchiseNamePort updateFranchiseNameUseCase;
 
     @Mock
-    private UpdateBranchNameUseCase updateBranchNameUseCase;
+    private UpdateBranchNamePort updateBranchNameUseCase;
 
     @Mock
-    private UpdateProductNameUseCase updateProductNameUseCase;
+    private UpdateProductNamePort updateProductNameUseCase;
 
     @Mock
     private ProductMapper productMapper;

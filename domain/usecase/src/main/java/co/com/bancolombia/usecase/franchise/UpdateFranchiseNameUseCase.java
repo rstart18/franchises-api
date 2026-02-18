@@ -4,14 +4,16 @@ import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.Franchise;
 import co.com.bancolombia.model.franchise.gateway.FranchiseRepository;
+import co.com.bancolombia.model.usecase.UpdateFranchiseNamePort;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class UpdateFranchiseNameUseCase {
+public class UpdateFranchiseNameUseCase extends UpdateFranchiseNamePort {
 
     private final FranchiseRepository franchiseRepository;
 
+    @Override
     public Mono<Franchise> execute(Long franchiseId, String newName) {
         return Mono.justOrEmpty(newName)
                 .filter(name -> !name.isBlank())

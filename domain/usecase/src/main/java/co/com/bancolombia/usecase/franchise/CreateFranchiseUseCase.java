@@ -4,14 +4,16 @@ import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.Franchise;
 import co.com.bancolombia.model.franchise.gateway.FranchiseRepository;
+import co.com.bancolombia.model.usecase.CreateFranchisePort;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class CreateFranchiseUseCase {
+public class CreateFranchiseUseCase extends CreateFranchisePort {
 
     private final FranchiseRepository franchiseRepository;
 
+    @Override
     public Mono<Franchise> execute(Franchise franchise) {
         return Mono.just(franchise)
                 .filter(this::hasValidName)

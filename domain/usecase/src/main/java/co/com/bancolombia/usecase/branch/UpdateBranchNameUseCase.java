@@ -4,14 +4,16 @@ import co.com.bancolombia.model.branch.Branch;
 import co.com.bancolombia.model.branch.gateway.BranchRepository;
 import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
+import co.com.bancolombia.model.usecase.UpdateBranchNamePort;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class UpdateBranchNameUseCase {
+public class UpdateBranchNameUseCase extends UpdateBranchNamePort {
 
     private final BranchRepository branchRepository;
 
+    @Override
     public Mono<Branch> execute(Long branchId, String newName) {
         return Mono.justOrEmpty(newName)
                 .filter(name -> !name.isBlank())

@@ -7,11 +7,12 @@ import co.com.bancolombia.model.branchproduct.gateway.BranchProductRepository;
 import co.com.bancolombia.model.branchproduct.gateway.StockAlertGateway;
 import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
+import co.com.bancolombia.model.usecase.UpdateProductStockPort;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class UpdateProductStockUseCase {
+public class UpdateProductStockUseCase extends UpdateProductStockPort {
 
     private static final int LOW_STOCK_THRESHOLD = 5;
 
@@ -19,6 +20,7 @@ public class UpdateProductStockUseCase {
     private final BranchProductRepository branchProductRepository;
     private final StockAlertGateway stockAlertGateway;
 
+    @Override
     public Mono<BranchProduct> execute(Long branchId, Long productId, Integer stock) {
         return Mono.justOrEmpty(stock)
                 .filter(s -> s >= 0)

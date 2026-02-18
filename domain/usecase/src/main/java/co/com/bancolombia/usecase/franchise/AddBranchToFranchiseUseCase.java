@@ -5,15 +5,17 @@ import co.com.bancolombia.model.branch.gateway.BranchRepository;
 import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.exception.DomainErrorCode;
 import co.com.bancolombia.model.franchise.gateway.FranchiseRepository;
+import co.com.bancolombia.model.usecase.AddBranchToFranchisePort;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class AddBranchToFranchiseUseCase {
+public class AddBranchToFranchiseUseCase extends AddBranchToFranchisePort {
 
     private final FranchiseRepository franchiseRepository;
     private final BranchRepository branchRepository;
 
+    @Override
     public Mono<Branch> execute(Long franchiseId, Branch branch) {
         return franchiseRepository.findById(franchiseId)
                 .switchIfEmpty(Mono.error(new BusinessException(DomainErrorCode.FRANCHISE_NOT_FOUND)))
